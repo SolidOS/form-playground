@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html id="docHTML">
+<head>
+  <title>Solid Form Playground</title>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
+    <link type="text/css" rel="stylesheet" href="https://solid.github.io/mashlib/mash.css" />
+    <script type="text/javascript" src="https://solid.github.io/mashlib/mashlib.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const panes = require('mashlib')
+    const UI = panes.UI
+    const $rdf = UI.rdf
+    const dom = document
+    $rdf.Fetcher.crossSiteProxyTemplate = self.origin + '/xss?uri={uri}';
+    var uri = window.location.href;
+    window.document.title = 'Data browser: ' + uri;
+    var kb = UI.store;
+    var outliner = panes.getOutliner(dom)
+
+    function complainIfBad (ok, message) {
+      if (ok) return
+      let msg = box.appendChild(dom.createElement('p'))
+      msg.textContent = message
+    }
+
+    function go ( event ) {
+      let uri = $rdf.uri.join(subjectEle.value, window.location.href)
+      console.log("User field " + subjectEle.value)
+      console.log("User requests " + uri)
+
+      const params = new URLSearchParams(location.search)
+      params.set('uri', uri);
+      window.history.replaceState({}, '', `${location.pathname}?${params}`);
+
+      var subject = kb.sym(uri);
+      // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
+      outliner.GotoSubject(subject, true, undefined, true, undefined);
+    }
+
+    async function applyForm ( event ) {
+      let uri = $rdf.uri.join(subjectEle.value, window.location.href)
+      let subject = $rdf.sym(uri)
+      console.log("Subject field " + subjectEle.value)
+      console.log("Loading subject: " + subject)
+      await kb.fetcher.load(subject)
+      console.log("Loaded subject. ")
+
+      let formURI = $rdf.uri.join(formEle.value, window.location.href)
+      let form = $rdf.sym(formURI)
+      console.log("Form field " + formEle.value)
+      console.log("Loading form: " + form)
+      await kb.fetcher.load(form)
+      console.log("Loaded form. ✅")
+
+
+      const params = new URLSearchParams(location.search)
+      params.set('subject', subject.uri);
+      params.set('form', form.uri);
+      window.history.replaceState({}, '', `${location.pathname}?${params}`);
+
+      let store = subject.doc() // @@ need footprints, allow user cotrol of store
+
+      UI.log.debug = console.log // @@ for testing
+
+      UI.widgets.appendForm(dom, box, {}, subject, form, store, complainIfBad)
+
+      // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
+      // outliner.GotoSubject(subject, true, undefined, true, undefined);
+    }
+
+    const box = dom.getElementById('box')
+    const formEle = dom.getElementById('form')
+    const subjectEle = dom.getElementById('subject')
+    const goButton = dom.getElementById('goButton')
+    const applyButton =  dom.getElementById('applyButton')
+    /*
+    subject.addEventListener('keyup', function (e) {
+      if (e.keyCode === 13) {
+        go(e)
+      }
+    }, false)
+    */
+
+    goButton.addEventListener('click', go, false);
+    applyButton.addEventListener('click', applyForm, false);
+
+    let initialSubject = new URLSearchParams(self.location.search).get("subject")
+    if (initialSubject) {
+      subjectEle.value = initialSubject
+    }
+    let initialForm = new URLSearchParams(self.location.search).get("form")
+    if (initialForm) {
+      formEle.value = initialForm
+    } else {
+      formEle.value = 'https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'
+    }
+
+    goButton.addEventListener('click', go, false);
+    let initial = new URLSearchParams(self.location.search).get("uri")
+    if (initial) {
+      subject.value = initial
+    } else {
+      console.log('ready for user input')
+      subjectEle.value = 'https://www.w3.org/People/Berners-Lee/card#i' // @@ testing
+    }
+
+    if (initialSubject && initialForm) {
+      console.log('All parms in URL search -> do immediately')
+      applyForm()
+    } else {
+      console.log('ready for user input')
+    }
+});
+</script>
+</head>
+<body>
+  <table style="width:100%;">
+    <tr>Data browser form playground</tr>
+    <tr style="font-size:100%">
+      <td style="padding:1em; width:5em;" id="icon">Subject:</td>
+      <td><input id="subject" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
+      <td  style="width:5em;"><input type="button" id="goButton" value="Go" /></td>
+    </tr>
+    <tr style="font-size:100%">
+      <td style="padding:1em; width:5em;" id="icon">Form to use:</td>
+      <td><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
+      <td  style="width:5em;"><input type="button" id="applyButton" value="Apply" /></td>
+    </tr>
+    <tr><td colspan="3">
+      <div class="TabulatorOutline" id="box">
+          <table id="outline"></table>
+      </div>
+    </td>
+    </tr>
+</table>
+</body>
+</html
