@@ -53,6 +53,24 @@ document.addEventListener('DOMContentLoaded', function() {
       await kb.fetcher.load(form)
       console.log("Loaded form. ✅")
 
+      console.log('Check predicates in form...')
+      const predicates = kb.statementsMatching(null, UI.ns.ui('property')).map(st => st.object)
+      var ontologyURIs = {}
+      for (var pred of predicates) {
+        console.log('        predicate: ' + pred)
+        let nsuri = pred.doc().uri
+        ontologyURIs[nsuri] = true
+      }
+      for (let ontURI in ontologyURIs) {
+        ontURI = ontURI.replace(/^http:/, 'https:') // hack for browser security -- sigh
+        console.log('Loading ontology URI ' + ontURI)
+        let options = { withCredentials: false} // sigh more browser security
+        try {
+          await kb.fetcher.load(ontURI, options) // or could pass array ontologyURIs.keys
+        } catch (err) {
+          complainIfBad(false, ontURI + ' ' + err)
+        }
+      }
 
       const params = new URLSearchParams(location.search)
       params.set('subject', subject.uri);
@@ -120,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Subject:</td>
       <td><input id="subject" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
-      <td  style="width:5em;"><input type="button" id="goButton" value="Go" /></td>
+      <td  style="width:5em;"><input type="button" id="goButton" value="(databrowser view)" /></td>
     </tr>
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Form to use:</td>
