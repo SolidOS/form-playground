@@ -63,6 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       for (let ontURI in ontologyURIs) {
         ontURI = ontURI.replace(/^http:/, 'https:') // hack for browser security -- sigh
+        if (ontURI.startsWith('https://purl.org/dc/terms/')) {
+          console.log('   Using W3C archive version of ' + ontURI)
+          ontURI = ontURI.replace(/^https:\/\//, 'https://www.w3.org/archive/')
+          // ontURI = 'https://www.w3.org/archive/purl.org/dc/terms/ontology.rdf'
+        }
         console.log('Loading ontology URI ' + ontURI)
         let options = { withCredentials: false} // sigh more browser security
         try {
