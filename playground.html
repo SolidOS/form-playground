@@ -5,7 +5,7 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
     <link type="text/css" rel="stylesheet" href="https://solid.github.io/mashlib/dist/mash.css" />
-    <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script>
+    <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panes = require('mashlib')
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dom = document
     $rdf.Fetcher.crossSiteProxyTemplate = self.origin + '/xss?uri={uri}';
     var uri = window.location.href;
-    window.document.title = 'Data browser: ' + uri;
+    // window.document.title = 'Data browser: ' + uri;
     var kb = UI.store;
     var outliner = panes.getOutliner(dom)
 
