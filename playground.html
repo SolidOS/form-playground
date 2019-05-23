@@ -4,8 +4,10 @@
   <title>Solid Form Playground</title>
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
+  
     <link type="text/css" rel="stylesheet" href="https://timbl.com/timbl/Automation/Library/Mashup/mash.css" />
     <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panes = require('mashlib')
@@ -24,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
       msg.textContent = message
     }
 
-    function go ( event ) {
+    function expandDataBowser ( event ) {
       let uri = $rdf.uri.join(subjectEle.value, window.location.href)
       console.log("User field " + subjectEle.value)
       console.log("User requests " + uri)
@@ -62,12 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
         ontologyURIs[nsuri] = true
       }
       for (let ontURI in ontologyURIs) {
+        let ontology = $rdf.sym(ontURI)
         ontURI = ontURI.replace(/^http:/, 'https:') // hack for browser security -- sigh
         if (ontURI.startsWith('https://purl.org/dc/terms/')) {
           console.log('   Using W3C archive version of ' + ontURI)
           ontURI = ontURI.replace(/^https:\/\//, 'https://www.w3.org/archive/')
           // ontURI = 'https://www.w3.org/archive/purl.org/dc/terms/ontology.rdf'
         }
+        addToTray(ontology)
         console.log('Loading ontology URI ' + ontURI)
         let options = { withCredentials: false} // sigh more browser security
         try {
@@ -92,6 +96,41 @@ document.addEventListener('DOMContentLoaded', function() {
       // outliner.GotoSubject(subject, true, undefined, true, undefined);
     }
 
+    async function addToTray (thing) {
+      console.log('Add to tray:' + thing)
+      function deleteThis () {
+        // @@ logical removal from tray collection
+        tray.removeChild(card)
+      }
+      var already = {}
+      for (var ele of tray.children) {
+        if (ele.subject) {
+          already[ele.subject.uri] = true
+        }
+      }
+      if (already[thing.uri]) {
+        console.log('    dropped object already in tray. ignore.' + thing)
+        return
+      }
+
+      var tr = UI.widgets.personTR(dom, null, thing, { deleteFunction: deleteThis}) // @@ add delete
+      var card = dom.createElement('table') // its own
+      card.appendChild(tr)
+
+      card.subject = thing
+      card.style.backgroundColor = '#8e8'
+      card.style.borderRadius = '1em'
+      card.style.margin = '0.3em'
+      tray.appendChild(card)
+    }
+
+    async function handleURIsDroppedOnTray (uris) {
+      for (uri of uris) {
+        console.log('dropped uri: ' + uri)
+        await addToTray($rdf.sym(uri))
+      }
+    }
+
     const box = dom.getElementById('box')
     const formEle = dom.getElementById('form')
     const subjectEle = dom.getElementById('subject')
@@ -100,12 +139,18 @@ document.addEventListener('DOMContentLoaded', function() {
     /*
     subject.addEventListener('keyup', function (e) {
       if (e.keyCode === 13) {
-        go(e)
+        expandDataBowser(e)
       }
     }, false)
     */
 
-    goButton.addEventListener('click', go, false);
+    const tray = box.appendChild(dom.createElement('div'))
+    tray.style = 'background-color: #ccc; padding: 1em; border-radius: 1em; min-width:30em; min-height: 5em;'
+    UI.widgets.makeDropTarget(tray, handleURIsDroppedOnTray)
+
+    // Basic stuff:
+
+    goButton.addEventListener('click', expandDataBowser, false);
     applyButton.addEventListener('click', applyForm, false);
 
     let initialSubject = new URLSearchParams(self.location.search).get("subject")
@@ -116,16 +161,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (initialForm) {
       formEle.value = initialForm
     } else {
-      formEle.value = 'https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'
+      // formEle.value = 'https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'
     }
 
-    goButton.addEventListener('click', go, false);
+    goButton.addEventListener('click', expandDataBowser, false);
     let initial = new URLSearchParams(self.location.search).get("uri")
     if (initial) {
       subject.value = initial
     } else {
       console.log('ready for user input')
-      subjectEle.value = 'https://www.w3.org/People/Berners-Lee/card#i' // @@ testing
+      // subjectEle.value = 'https://www.w3.org/People/Berners-Lee/card#i' // @@ testing
+    }
+
+    async function main () {
+      await addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
+      await addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
+      await addToTray($rdf.sym('https://www.w3.org/ns/ui#FormForm'))
     }
 
     if (initialSubject && initialForm) {
@@ -134,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       console.log('ready for user input')
     }
+    main()
 });
 </script>
 </head>
