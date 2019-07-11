@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html id="docHTML">
+<head>
+  <title>CORS test with multiple origins</title>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  /*
+    const panes = require('mashlib')
+    const UI = panes.UI
+    const $rdf = UI.rdf
+    const dom = document
+    $rdf.Fetcher.crossSiteProxyTemplate = self.origin + '/xss?uri={uri}';
+    var uri = window.location.href;
+    var kb = UI.store;
+    var outliner = panes.getOutliner(dom)
+
+    function complainIfBad (ok, message) {
+      if (ok) return
+      let msg = box.appendChild(dom.createElement('p'))
+      msg.textContent = message
+    }
+*/
+
+});
+</script>
+</head>
+<body>
+  <p>To similaute a problem which occurs when a user vits two web sites which access the same public data,
+  we make two iframes, </p>
+  <table style="width:100%;">
+    <tr><th>CORS test</th></tr>
+    <tr style="font-size:100%">
+      <td>one:
+      <iframe src="https://timbl.com/timbl/Public/Test/DataBrowserAsAWebApp/browse.html?uri=https%3A%2F%2Fwww.w3.org%2FPeople%2FBerners-Lee%2Fcard%23i"
+        style="width:70em; height:15em; boder: 0.1em solid grey;">
+      </iframe>
+      </td>
+    </tr>
+    <tr style="font-size:100%">
+      <td>two:
+        <iframe src="https://timbl.com/timbl/Public/Test/DataBrowserAsAWebApp/browse.html?uri=https%3A%2F%2Fwww.w3.org%2FPeople%2FBerners-Lee%2Fcard%23i"
+          style="width:70em; height:15em; boder: 0.1em solid grey;">
+        </iframe>
+
+      </td>
+
+    </tr>
+    <tr><td colspan="3">
+      <div class="TabulatorOutline" id="box">
+          <table id="outline"></table>
+      </div>
+    </td>
+    </tr>
+</table>
+</body>
+</html
