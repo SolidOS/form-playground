@@ -20,7 +20,7 @@ Possible future directions:
 ## Simple data browser
 
 There is also a webapp version of the data browser online: See
- [data browser webapp live on github pages](https://solid.github.io/form-playground/playground.html)
+ [data browser webapp live on github pages](https://solid.github.io/form-playground/browse.html)
 
 That is good if you want to point some linked data on the web at it as a general viewer.
 It will also generate you a view URI for its view of that object for you to link to or show to others.
