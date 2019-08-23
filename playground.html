@@ -4,7 +4,7 @@
   <title>Solid Form Playground</title>
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
-  
+
     <link type="text/css" rel="stylesheet" href="https://timbl.com/timbl/Automation/Library/Mashup/mash.css" />
     <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
 
@@ -38,6 +38,35 @@ document.addEventListener('DOMContentLoaded', function() {
       var subject = kb.sym(uri);
       // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
       outliner.GotoSubject(subject, true, undefined, true, undefined);
+    }
+
+    function queryFromForm(kb, form) {
+      var v = 1
+      var query = new $rdf.Query()
+      const root = new $rdf.Variable('?root')
+      function doForm(form, subject) {
+        var parts =  kb.any(form, ns.ui('parts'))
+        if (parts) {
+          parts = parts.elements
+        } else {
+          parts = kb.each(form, ns.ui('part')
+        }
+        console.log(`queryFromForm: ${parts.length} parts`)
+        if (parts.length === ) throw new Error('No parts')
+        for (var part of parts) {
+          let pred = kb.the(part, ns.ui('property'))
+          if (!pred) throw new Error('wot no property')
+          var object = new $rdf.Variable('v' + v++) // @@ make variable name cute from pred
+          query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
+          if (kb.holds(part, ns.rdf('type'), ns.ui('Group'))
+            || kb.holds(part, ns.rdf('type'), ns.ui('Form'))) {
+              doForm(part, object)
+            }
+          }
+        }
+      }
+      doForm(form, root)
+      return query
     }
 
     async function applyForm ( event ) {
