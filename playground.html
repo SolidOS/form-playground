@@ -5,12 +5,13 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
 
-    <link type="text/css" rel="stylesheet" href="https://timbl.com/timbl/Automation/Library/Mashup/mash.css" />
-    <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
-
+    <link type="text/css" rel="stylesheet" href="../mashlib/dist/mash.css" />
+    <script type="text/javascript" src="../mashlib/dist/mashlib.js"></script>
+<!--    <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
+-->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const panes = require('mashlib')
+    // const panes = require('mashlib')
     const UI = panes.UI
     const $rdf = UI.rdf
     const dom = document
@@ -49,10 +50,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (parts) {
           parts = parts.elements
         } else {
-          parts = kb.each(form, ns.ui('part')
+          parts = kb.each(form, ns.ui('part'))
         }
         console.log(`queryFromForm: ${parts.length} parts`)
-        if (parts.length === ) throw new Error('No parts')
+        if (parts.length === 0) throw new Error('No parts')
         for (var part of parts) {
           let pred = kb.the(part, ns.ui('property'))
           if (!pred) throw new Error('wot no property')
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (kb.holds(part, ns.rdf('type'), ns.ui('Group'))
             || kb.holds(part, ns.rdf('type'), ns.ui('Form'))) {
               doForm(part, object)
-            }
+
           }
         }
       }
