@@ -142,15 +142,27 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('    dropped object already in tray. ignore.' + thing)
         return
       }
+      var error
+      try {
+        await kb.fetcher.load(thing.doc())
+        console.info('Card: OK loading ' + thing)
 
-      var tr = UI.widgets.personTR(dom, null, thing, { deleteFunction: deleteThis}) // @@ add delete
-      var card = dom.createElement('table') // its own
-      card.appendChild(tr)
-
-      card.subject = thing
-      card.style.backgroundColor = '#8e8'
+      } catch (err) {
+        error = err
+        console.warn('Card: Error loading ' + thing + '+ ' + err)
+      }
+      const card = dom.createElement('table') // its own
+      const tr = UI.widgets.personTR(dom, null, thing, { deleteFunction: deleteThis})
+      if (error) {
+        tr.appendChild(UI.widgets.errorMessageBlock(dom, '' + error))
+        card.style.backgroundColor = '#fdd' // pink
+      } else {
+        card.subject = thing
+        card.style.backgroundColor = '#efe' // green
+      }
       card.style.borderRadius = '1em'
       card.style.margin = '0.3em'
+      card.appendChild(tr)
       tray.appendChild(card)
     }
 
@@ -206,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function main () {
       await addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
       await addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
+      await addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
       await addToTray($rdf.sym('https://www.w3.org/ns/ui#FormForm'))
     }
 
