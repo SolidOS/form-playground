@@ -143,6 +143,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return
       }
       var error
+      const card = dom.createElement('table') // its own
+      const tr = UI.widgets.personTR(dom, null, thing, { deleteFunction: deleteThis})
+      card.style.borderRadius = '1em'
+      card.style.margin = '0.3em'
+      card.appendChild(tr)
+      tray.appendChild(card)
+
+      card.style.backgroundColor = '#ffc' // yellow - pending
       try {
         await kb.fetcher.load(thing.doc())
         console.info('Card: OK loading ' + thing)
@@ -151,19 +159,13 @@ document.addEventListener('DOMContentLoaded', function() {
         error = err
         console.warn('Card: Error loading ' + thing + '+ ' + err)
       }
-      const card = dom.createElement('table') // its own
-      const tr = UI.widgets.personTR(dom, null, thing, { deleteFunction: deleteThis})
       if (error) {
-        tr.appendChild(UI.widgets.errorMessageBlock(dom, '' + error))
+        tr.children[1].appendChild(UI.widgets.errorMessageBlock(dom, '' + error))
         card.style.backgroundColor = '#fdd' // pink
       } else {
         card.subject = thing
         card.style.backgroundColor = '#efe' // green
       }
-      card.style.borderRadius = '1em'
-      card.style.margin = '0.3em'
-      card.appendChild(tr)
-      tray.appendChild(card)
     }
 
     async function handleURIsDroppedOnTray (uris) {
@@ -216,10 +218,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function main () {
-      await addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
-      await addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
-      await addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
-      await addToTray($rdf.sym('https://www.w3.org/ns/ui#FormForm'))
+      // @@ normally these would be await calls
+      addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
+      addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
+      addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
+      addToTray($rdf.sym('https://www.w3.org/ns/ui#FormForm'))
     }
 
     if (initialSubject && initialForm) {
