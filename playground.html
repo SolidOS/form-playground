@@ -7,14 +7,15 @@
 
     <link type="text/css" rel="stylesheet" href="../mashlib/dist/mash.css" />
     <script type="text/javascript" src="../mashlib/dist/mashlib.js"></script>
-<!--    <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
--->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // const panes = require('mashlib')
     const UI = panes.UI
     const $rdf = UI.rdf
     const dom = document
+
+    const loadOptions = { credentials: 'omit', withCredentials: false}
+
     $rdf.Fetcher.crossSiteProxyTemplate = self.origin + '/xss?uri={uri}';
     var uri = window.location.href;
     // window.document.title = 'Data browser: ' + uri;
@@ -75,14 +76,14 @@ document.addEventListener('DOMContentLoaded', function() {
       let subject = $rdf.sym(uri)
       console.log("Subject field " + subjectEle.value)
       console.log("Loading subject: " + subject)
-      await kb.fetcher.load(subject)
+      await kb.fetcher.load(subject, loadOptions)
       console.log("Loaded subject. ")
 
       let formURI = $rdf.uri.join(formEle.value, window.location.href)
       let form = $rdf.sym(formURI)
       console.log("Form field " + formEle.value)
       console.log("Loading form: " + form)
-      await kb.fetcher.load(form)
+      await kb.fetcher.load(form, loadOptions)
       console.log("Loaded form. ✅")
 
       console.log('Check predicates in form...')
@@ -103,9 +104,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         addToTray(ontology)
         console.log('Loading ontology URI ' + ontURI)
-        let options = { withCredentials: false} // sigh more browser security
+        // let options = { withCredentials: false} // sigh more browser security
         try {
-          await kb.fetcher.load(ontURI, options) // or could pass array ontologyURIs.keys
+          await kb.fetcher.load(ontURI, loadOptions) // or could pass array ontologyURIs.keys
         } catch (err) {
           complainIfBad(false, ontURI + ' ' + err)
         }
@@ -148,11 +149,12 @@ document.addEventListener('DOMContentLoaded', function() {
       card.style.borderRadius = '1em'
       card.style.margin = '0.3em'
       card.appendChild(tr)
+      card.subject = thing
       tray.appendChild(card)
 
       card.style.backgroundColor = '#ffc' // yellow - pending
       try {
-        await kb.fetcher.load(thing.doc())
+        await kb.fetcher.load(thing.doc(), loadOptions)
         console.info('Card: OK loading ' + thing)
 
       } catch (err) {
@@ -163,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
         tr.children[1].appendChild(UI.widgets.errorMessageBlock(dom, '' + error))
         card.style.backgroundColor = '#fdd' // pink
       } else {
-        card.subject = thing
         card.style.backgroundColor = '#efe' // green
       }
     }
@@ -221,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // @@ normally these would be await calls
       addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
       addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
-      addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
+      // addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
       addToTray($rdf.sym('https://www.w3.org/ns/ui#FormForm'))
     }
 
