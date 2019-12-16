@@ -6,13 +6,16 @@
   <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
 
     <link type="text/css" rel="stylesheet" href="../mashlib/dist/mash.css" />
-    <script type="text/javascript" src="../mashlib/dist/mashlib.js"></script>
+    <!-- <script type="text/javascript" src="../mashlib/dist/mashlib.js"></script> -->
+    <script type="text/javascript" src="../mashlib-dev/workspaces/mashlib/dist/mashlib.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // const panes = require('mashlib')
     const UI = panes.UI
     const $rdf = UI.rdf
     const dom = document
+    const ns = UI.ns
+    const style = UI.style
 
     const loadOptions = { credentials: 'omit', withCredentials: false}
 
@@ -26,7 +29,45 @@ document.addEventListener('DOMContentLoaded', function() {
       if (ok) return
       let msg = box.appendChild(dom.createElement('p'))
       msg.textContent = message
+      console.log(message)
     }
+
+    const ontologyMap = { // @@ Do this for all terms in the ontology, not just title
+      'http://purl.org/dc/elements/1.1/title': 'https://www.w3.org/archive/purl.org/dc/elements/1.1/ontology.rdf'
+    }
+    var loadedAlready = {}
+    async function adjustAndLoad (x, loadOptions) {
+      var uri = x.uri || x
+      if (ontologyMap[uri]) {
+        console.log('  Mapped to be: ' +  ontologyMap[uri])
+        return kb.fetcher.load(ontologyMap[uri], loadOptions)
+      }
+      if (uri.startsWith('http:')) {
+        uri = uri.split('#')[0] // chop off localid to get doc
+        let suri = 'https:' + uri.slice(5)
+        console.log('  Adjusted to be https: ' +  suri)
+        if (loadedAlready[suri]) {
+          console.log('Already loaded. Ignore ' + suri)
+          return
+        }
+        const options = Object.assign({baseURI: uri}, loadOptions)
+        await kb.fetcher.load(suri, options)
+        loadedAlready[suri] = true
+        console.log(`   Loaded ${suri} as though it were ${uri} `)
+        return
+      }
+      return kb.fetcher.load(uri, loadOptions)
+    }
+
+    async function adjustAndLoadAndCatch (x, loadOptions) {
+      try {
+        await adjustAndLoad(x, loadOptions) // or could pass array ontologyURIs.keys
+      } catch (err) {
+        // complainIfBad(false, 'Caught: ' + x + ' ' + err)     @@
+      }
+    }
+
+//////////////// User actions
 
     function expandDataBowser ( event ) {
       let uri = $rdf.uri.join(subjectEle.value, window.location.href)
@@ -39,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       var subject = kb.sym(uri);
       // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
+      box.innerHTML = '<table id="outline"></table>'
       outliner.GotoSubject(subject, true, undefined, true, undefined);
     }
 
@@ -76,19 +118,20 @@ document.addEventListener('DOMContentLoaded', function() {
       let subject = $rdf.sym(uri)
       console.log("Subject field " + subjectEle.value)
       console.log("Loading subject: " + subject)
-      await kb.fetcher.load(subject, loadOptions)
-      console.log("Loaded subject. ")
+      await adjustAndLoadAndCatch(subject, loadOptions)
+      console.log(`Loaded subject   ${subject} ✅`)
 
       let formURI = $rdf.uri.join(formEle.value, window.location.href)
       let form = $rdf.sym(formURI)
       console.log("Form field " + formEle.value)
       console.log("Loading form: " + form)
-      await kb.fetcher.load(form, loadOptions)
-      console.log("Loaded form. ✅")
+      await adjustAndLoadAndCatch(form, loadOptions)
+      console.log(`Loaded form ${form} ✅`)
 
       console.log('Check predicates in form...')
       const predicates = kb.statementsMatching(null, UI.ns.ui('property')).map(st => st.object)
       var ontologyURIs = {}
+      predicates.push(ns.ui('min')) // Pull in UI ontology as form system needs that to work
       for (var pred of predicates) {
         console.log('        predicate: ' + pred)
         let nsuri = pred.doc().uri
@@ -105,12 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
         addToTray(ontology)
         console.log('Loading ontology URI ' + ontURI)
         // let options = { withCredentials: false} // sigh more browser security
-        try {
-          await kb.fetcher.load(ontURI, loadOptions) // or could pass array ontologyURIs.keys
-        } catch (err) {
-          complainIfBad(false, ontURI + ' ' + err)
-        }
+        await adjustAndLoadAndCatch(ontURI, loadOptions) // or could pass array ontologyURIs.keys
       }
+      console.log(`Loaded ontologies ✅`)
+
 
       const params = new URLSearchParams(location.search)
       params.set('subject', subject.uri);
@@ -121,12 +162,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
       UI.log.debug = console.log // @@ for testing
 
+      console.log('\nAppending form now:')
+      console.log(`  form ${form}\n  subject:  ${subject}`)
+      box.innerHTML = ''
       UI.widgets.appendForm(dom, box, {}, subject, form, store, complainIfBad)
 
       // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
       // outliner.GotoSubject(subject, true, undefined, true, undefined);
     }
 
+    async function createNewForm  (_event) {
+      let uri = $rdf.uri.join(subjectEle.value, window.location.href)
+      if (!uri.includes('#')) uri += '#this'
+      const x = kb.sym(uri)
+      if (confirm(`Create new form at ${x} ?`)) {
+        kb.add(x, ns.rdf('type'), ns.ui('Form'), x.doc())
+        await kb.fetcher.putBack(x.doc())
+        alert('Created.')
+        await addToTray(x)
+      }
+    }
+    /** Add a thing to the tray of resources
+    */
     async function addToTray (thing) {
       console.log('Add to tray:' + thing)
       function deleteThis () {
@@ -144,7 +201,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return
       }
       var error
-      const card = dom.createElement('table') // its own
+
+      const card = dom.createElement('div') // its own
+      card.style = 'max-width:20em; display:inline-block;'
+      const cardTable = card.appendChild(dom.createElement('table')) // its own
       const tr = UI.widgets.personTR(dom, null, thing, { deleteFunction: deleteThis})
       card.style.borderRadius = '1em'
       card.style.margin = '0.3em'
@@ -154,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       card.style.backgroundColor = '#ffc' // yellow - pending
       try {
-        await kb.fetcher.load(thing.doc(), loadOptions)
+        await adjustAndLoadAndCatch(thing.doc(), loadOptions)
         console.info('Card: OK loading ' + thing)
 
       } catch (err) {
@@ -176,11 +236,43 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
+    // Build The playground
+
     const box = dom.getElementById('box')
     const formEle = dom.getElementById('form')
+    formEle.style = UI.style.textInputStyle
+    formEle.style.width = '45em'
+
     const subjectEle = dom.getElementById('subject')
+    subjectEle.style = UI.style.textInputStyle
+    subjectEle.style.width = '45em'
+
     const goButton = dom.getElementById('goButton')
+    goButton.style = UI.textButtonStyle
+
     const applyButton =  dom.getElementById('applyButton')
+    applyButton.style = style.signInButtonStyle // not normal style
+    const addToTrayButton =  dom.getElementById('addToTrayButton')
+
+    const newFormButton =  dom.getElementById('newFormButton')
+    newFormButton.style = UI.textButtonStyle
+    newFormButton.addEventListener('click', createNewForm, false)
+
+    const newOntologyButton =  dom.getElementById('newOntologyButton')
+
+    const statusArea = dom.getElementById('statusArea')
+    const logInbox = dom.getElementById('logInbox')
+    const context = { div: logInbox, dom: dom, buttonStyle: UI.style.buttonStyle}
+    UI.authn.logIn(context).then(context => {
+      me = context.me
+      alert(me)
+      // Object.assign(context, userContext)
+      //bookmarks.findBookmarkDocument(context).then(context => {
+        // console.log('Bookmark file: ' + context.bookmarkDocument)
+
+    })
+
+
     /*
     subject.addEventListener('keyup', function (e) {
       if (e.keyCode === 13) {
@@ -189,14 +281,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }, false)
     */
 
-    const tray = box.appendChild(dom.createElement('div'))
-    tray.style = 'background-color: #ccc; padding: 1em; border-radius: 1em; min-width:30em; min-height: 5em;'
+    //const tray = box.appendChild(dom.createElement('div'))
+    const tray = dom.getElementById('tray')
+    tray.style = 'background-color: #ccc; padding: 1em; border-radius: 1em; min-width:30em; min-height: 5em; margin-bottom: 1em;' +
+    'border-top: 0.3em solid #555; border-left: 0.3em solid #555;border-bottom: 0.3em solid #eee;border-right: 0.3em solid #eee;'
     UI.widgets.makeDropTarget(tray, handleURIsDroppedOnTray)
 
     // Basic stuff:
 
     goButton.addEventListener('click', expandDataBowser, false);
     applyButton.addEventListener('click', applyForm, false);
+
+    newOntologyButton.addEventListener('click', _event => {
+      const x =  kb.sym()
+      kb.add()
+    }, false)
 
     let initialSubject = new URLSearchParams(self.location.search).get("subject")
     if (initialSubject) {
@@ -218,12 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
       // subjectEle.value = 'https://www.w3.org/People/Berners-Lee/card#i' // @@ testing
     }
 
+
     async function main () {
       // @@ normally these would be await calls
       addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
       addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
       // addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
-      addToTray($rdf.sym('https://www.w3.org/ns/ui#FormForm'))
+      addToTray($rdf.sym('http://www.w3.org/ns/ui#FormForm'))
     }
 
     if (initialSubject && initialForm) {
@@ -236,25 +336,51 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </head>
-<body>
-  <table style="width:100%;">
-    <tr>Data browser form playground</tr>
+<body style="padding: 1em;">
+
+  <table style="width:100%; margin-top:1em; margin-bottom:1em;">
+    <tr style="font-size:100%">
+      <td colspan="5"><h1>Form Playground</h1></td>
+      <td id="logInbox" style="width:5em;"></td>
+    </tr>
+
+
+
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Subject:</td>
-      <td><input id="subject" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
-      <td  style="width:5em;"><input type="button" id="goButton" value="(databrowser view)" /></td>
+      <td colspan="4"><input id="subject" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
+      <td id="notlogInbox" style="width:5em;"></td>
     </tr>
     <tr style="font-size:100%">
+      <td style="padding:1em; width:5em">at that URI:</td>
+
+      <td  style="width:5em;"><input type="button" id="goButton" value="View data" /></td>
+      <td  style="width:5em;"><input type="button" id="addToTrayButton" value="Add to tray" /></td>
+      <td  style="width:5em;"><input type="button" id="newFormButton" value="New Form here" /></td>
+      <td  style="width:5em;"><input type="button" id="newOntologyButton" value="New Ontology here" /></td>
+
+      <td id="rhs" style="width:5em;"></td>
+    </tr>
+
+    <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Form to use:</td>
-      <td><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
+      <td colspan="4"><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
       <td  style="width:5em;"><input type="button" id="applyButton" value="Apply" /></td>
     </tr>
-    <tr><td colspan="3">
-      <div class="TabulatorOutline" id="box">
-          <table id="outline"></table>
+    <tr><td style='padding-top:1em;'>Tray of resources:</td><td colspan="5" id="tray"></td>
+    </tr>
+    <tr><td style='padding-top:1em;'>Form applied to subject:</td><td colspan="5">
+      <div class="TabulatorOutline" style="margin:1em;" id="box">
+        <table id="outline"></table>
       </div>
     </td>
     </tr>
+
+    <tr><td colspan="6">
+    </td>
+    </tr>
 </table>
+
+
 </body>
 </html
