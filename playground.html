@@ -7,6 +7,7 @@
 
     <link type="text/css" rel="stylesheet" href="../mashlib/dist/mash.css" />
     <!-- <script type="text/javascript" src="../mashlib/dist/mashlib.js"></script> -->
+    <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script>
     <script type="text/javascript" src="../mashlib-dev/workspaces/mashlib/dist/mashlib.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -27,20 +28,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function complainIfBad (ok, message) {
       if (ok) return
-      let msg = box.appendChild(dom.createElement('p'))
-      msg.textContent = message
+      box.appendChild(UI.widgets.errorMessageBlock(dom, '' + message))      // msg.textContent = message
       console.log(message)
     }
 
     const ontologyMap = { // @@ Do this for all terms in the ontology, not just title
-      'http://purl.org/dc/elements/1.1/title': 'https://www.w3.org/archive/purl.org/dc/elements/1.1/ontology.rdf'
+      'http://purl.org/dc/terms/': 'https://www.w3.org/archive/purl.org/dc/terms',
+      'http://purl.org/dc/elements/1.1/title': 'https://www.w3.org/archive/purl.org/dc/elements/1.1/ontology.rdf',
+      'http://usefulinc.com/ns/doap': 'https://www.w3.org/archive/usefulinc.com/ns/doap.rdf',
+      'http://www.w3.org/1999/02/22-rdf-syntax-ns': 'http://www.w3.org/1999/02/22-rdf-syntax-ns.rdf'
     }
     var loadedAlready = {}
     async function adjustAndLoad (x, loadOptions) {
       var uri = x.uri || x
       if (ontologyMap[uri]) {
         console.log('  Mapped to be: ' +  ontologyMap[uri])
-        return kb.fetcher.load(ontologyMap[uri], loadOptions)
+        await kb.fetcher.load(ontologyMap[uri], Object.assign({baseURI: uri}, loadOptions))
+        return
       }
       if (uri.startsWith('http:')) {
         uri = uri.split('#')[0] // chop off localid to get doc
@@ -113,6 +117,14 @@ document.addEventListener('DOMContentLoaded', function() {
       return query
     }
 
+    async function addSubjectToTray (_event) {
+       addToTray(mainTray, $rdf.sym(subjectEle.value))
+    }
+
+    async function makeInstanceOfClass (_event) {
+      let klass = $rdf.sym($rdf.uri.join(formEle.value, window.location.href))
+      return createNewThingOfType(klass)
+    }
     async function applyForm ( event ) {
       let uri = $rdf.uri.join(subjectEle.value, window.location.href)
       let subject = $rdf.sym(uri)
@@ -145,7 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
           ontURI = ontURI.replace(/^https:\/\//, 'https://www.w3.org/archive/')
           // ontURI = 'https://www.w3.org/archive/purl.org/dc/terms/ontology.rdf'
         }
-        addToTray(ontology)
+        kb.add(ontology, ns.rdf('type'), ns.owl('Ontology'), ontology)
+        addToTray(mainTray, ontology)
         console.log('Loading ontology URI ' + ontURI)
         // let options = { withCredentials: false} // sigh more browser security
         await adjustAndLoadAndCatch(ontURI, loadOptions) // or could pass array ontologyURIs.keys
@@ -171,20 +184,35 @@ document.addEventListener('DOMContentLoaded', function() {
       // outliner.GotoSubject(subject, true, undefined, true, undefined);
     }
 
-    async function createNewForm  (_event) {
+    async function createNewThingOfType  (klass) {
       let uri = $rdf.uri.join(subjectEle.value, window.location.href)
       if (!uri.includes('#')) uri += '#this'
       const x = kb.sym(uri)
-      if (confirm(`Create new form at ${x} ?`)) {
-        kb.add(x, ns.rdf('type'), ns.ui('Form'), x.doc())
-        await kb.fetcher.putBack(x.doc())
-        alert('Created.')
-        await addToTray(x)
+      const label  =  UI.utils.label(klass)
+      if (confirm(`Create new ${label} at ${x} ?`)) {
+        const doc = x.doc()
+        try {
+          kb.fetcher.load(doc)
+        } catch (err)  {
+          if (kb.fetcher.nonexistent[doc.uri]) {
+            console.log('Doc already exist: ' + doc)
+          } else {
+            alert(err)
+          }
+        }
+        kb.add(x, ns.rdf('type'), klass, doc)
+        await kb.fetcher.putBack(doc)
+        await addToTray(mainTray, x)
+        alert('Created and added to the tray.')
       }
+    }
+
+    async function createNewClass () {
+      return createNewThingOfType(ns.rdfs('Class'))
     }
     /** Add a thing to the tray of resources
     */
-    async function addToTray (thing) {
+    async function addToTray (tray, thing) {
       console.log('Add to tray:' + thing)
       function deleteThis () {
         // @@ logical removal from tray collection
@@ -229,11 +257,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    async function handleURIsDroppedOnTray (uris) {
+    async function handleURIsDroppedOnTray (tray, uris) {
       for (uri of uris) {
         console.log('dropped uri: ' + uri)
-        await addToTray($rdf.sym(uri))
+        await addToTray(tray, $rdf.sym(uri))
       }
+    }
+    function renderTray () {
+      const tray = dom.createElement('div')
+      tray.style = 'background-color: #ccc; padding: 1em; border-radius: 1em; min-width:30em; min-height: 5em; margin-bottom: 1em;' +
+      'border-top: 0.3em solid #555; border-left: 0.3em solid #555;border-bottom: 0.3em solid #eee;border-right: 0.3em solid #eee;'
+      UI.widgets.makeDropTarget(tray, uris => handleURIsDroppedOnTray(tray, uris))
+      return tray
     }
 
     // Build The playground
@@ -252,13 +287,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const applyButton =  dom.getElementById('applyButton')
     applyButton.style = style.signInButtonStyle // not normal style
+
     const addToTrayButton =  dom.getElementById('addToTrayButton')
+    addToTrayButton.addEventListener('click', addSubjectToTray)
 
-    const newFormButton =  dom.getElementById('newFormButton')
-    newFormButton.style = UI.textButtonStyle
-    newFormButton.addEventListener('click', createNewForm, false)
 
-    const newOntologyButton =  dom.getElementById('newOntologyButton')
+    const makeNewOfThisTypeButton =  dom.getElementById('makeNewOfThisTypeButton')
+    makeNewOfThisTypeButton.style = style.signInButtonStyle // not normal style
+    makeNewOfThisTypeButton.addEventListener('click', makeInstanceOfClass)
+
+    function buttonToMakeNewThingOfClass (klass) {
+      const button = dom.createElement('button')
+      button.textContent =   'New ' + UI.utils.label(klass)
+      button.addEventListener('click', _event => createNewThingOfType(klass))
+      return button
+    }
+
+    const ClassesToBuild = [ ns.ui('Form'), ns.rdfs('Class') , ns.rdfs('Property') ]
+    const actionCell = dom.getElementById('actionCell')
+    ClassesToBuild.forEach(klass => {
+      actionCell.appendChild(buttonToMakeNewThingOfClass(klass))
+    })
 
     const statusArea = dom.getElementById('statusArea')
     const logInbox = dom.getElementById('logInbox')
@@ -266,36 +315,23 @@ document.addEventListener('DOMContentLoaded', function() {
     UI.authn.logIn(context).then(context => {
       me = context.me
       alert(me)
-      // Object.assign(context, userContext)
-      //bookmarks.findBookmarkDocument(context).then(context => {
-        // console.log('Bookmark file: ' + context.bookmarkDocument)
-
     })
 
+    const mainTray = traySpace.appendChild(renderTray())
 
-    /*
-    subject.addEventListener('keyup', function (e) {
-      if (e.keyCode === 13) {
-        expandDataBowser(e)
-      }
-    }, false)
-    */
-
-    //const tray = box.appendChild(dom.createElement('div'))
-    const tray = dom.getElementById('tray')
-    tray.style = 'background-color: #ccc; padding: 1em; border-radius: 1em; min-width:30em; min-height: 5em; margin-bottom: 1em;' +
-    'border-top: 0.3em solid #555; border-left: 0.3em solid #555;border-bottom: 0.3em solid #eee;border-right: 0.3em solid #eee;'
-    UI.widgets.makeDropTarget(tray, handleURIsDroppedOnTray)
+    const ontologyTray = traySpace.appendChild(renderTray())
+    for (const prefix in UI.ns) {
+      const namespace = UI.ns[prefix]
+      const ontology = namespace('').doc()
+      console.log('Ontology from namespace: ', ontology)
+      kb.add(ontology, ns.rdf('type'), ns.owl('Ontology'), ontology)
+      // addToTray(ontologyTray, ontology) // The namespace document
+    }
 
     // Basic stuff:
 
     goButton.addEventListener('click', expandDataBowser, false);
     applyButton.addEventListener('click', applyForm, false);
-
-    newOntologyButton.addEventListener('click', _event => {
-      const x =  kb.sym()
-      kb.add()
-    }, false)
 
     let initialSubject = new URLSearchParams(self.location.search).get("subject")
     if (initialSubject) {
@@ -317,13 +353,18 @@ document.addEventListener('DOMContentLoaded', function() {
       // subjectEle.value = 'https://www.w3.org/People/Berners-Lee/card#i' // @@ testing
     }
 
-
     async function main () {
       // @@ normally these would be await calls
-      addToTray($rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
-      addToTray($rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
-      // addToTray($rdf.sym('http://localhost:3080/example/nonExistent_404'))
-      addToTray($rdf.sym('http://www.w3.org/ns/ui#FormForm'))
+      addToTray(mainTray, $rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
+      addToTray(mainTray, $rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
+      // addToTray(mainTray, $rdf.sym('http://localhost:3080/example/nonExistent_404'))
+      addToTray(mainTray, $rdf.sym('http://www.w3.org/ns/ui#FormForm'))
+      addToTray(mainTray, $rdf.sym('http://www.w3.org/2000/01/rdf-schema#Class'))
+      addToTray(mainTray, ns.rdf('Property')) // The class of properties
+      addToTray(mainTray, ns.rdf('type')) // A property
+      addToTray(mainTray, ns.rdf('List')) // A class
+      addToTray(mainTray, ns.vcard('Individual')) // A property
+
     }
 
     if (initialSubject && initialForm) {
@@ -344,30 +385,30 @@ document.addEventListener('DOMContentLoaded', function() {
       <td id="logInbox" style="width:5em;"></td>
     </tr>
 
-
-
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Subject:</td>
       <td colspan="4"><input id="subject" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
       <td id="notlogInbox" style="width:5em;"></td>
     </tr>
-    <tr style="font-size:100%">
+
+    <tr style="font-size:100%" id="actionBar">
       <td style="padding:1em; width:5em">at that URI:</td>
-
-      <td  style="width:5em;"><input type="button" id="goButton" value="View data" /></td>
-      <td  style="width:5em;"><input type="button" id="addToTrayButton" value="Add to tray" /></td>
-      <td  style="width:5em;"><input type="button" id="newFormButton" value="New Form here" /></td>
-      <td  style="width:5em;"><input type="button" id="newOntologyButton" value="New Ontology here" /></td>
-
+      <td id="actionCell">
+        <input type="button" id="goButton" value="View data" />
+        <input type="button" id="addToTrayButton" value="Add to tray" />
+      </td>
       <td id="rhs" style="width:5em;"></td>
     </tr>
 
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Form to use:</td>
       <td colspan="4"><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
-      <td  style="width:5em;"><input type="button" id="applyButton" value="Apply" /></td>
+      <td  style="width:5em;"><input type="button" id="applyButton" value="Apply" />
+      <input type="button" id="makeNewOfThisTypeButton" value="Make new thing of this type" /></td>
     </tr>
-    <tr><td style='padding-top:1em;'>Tray of resources:</td><td colspan="5" id="tray"></td>
+    <tr>
+      <td style='padding-top:1em;'>Tray of resources:</td><td colspan="5" id="traySpace">
+      </td>
     </tr>
     <tr><td style='padding-top:1em;'>Form applied to subject:</td><td colspan="5">
       <div class="TabulatorOutline" style="margin:1em;" id="box">
