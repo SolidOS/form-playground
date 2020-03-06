@@ -2,11 +2,10 @@
 <html id="docHTML">
 <head>
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
-  <!-- was https://solid.github.io/solid-panes/style/tabbedtab.css   -->
-    <link type="text/css" rel="stylesheet" href="mash.css" />
-    <script type="text/javascript" src="mashlib.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+  <link type="text/css" rel="stylesheet" href="mash.css" />
+  <script type="text/javascript" src="mashlib.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
     const panes = require('mashlib')
     const UI = panes.UI
     const $rdf = UI.rdf
@@ -48,22 +47,26 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('ready for user input')
     }
 
-});
-</script>
+  });
+  </script>
 </head>
 <body>
   <table style="width:100%;">
     <tr>Data browser</tr>
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">URI:</td>
-      <td><input id="uriField" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
-      <td  style="width:5em;"><input type="button" id="goButton" value="Go" /></td>
+      <td>
+        <input id="uriField" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/>
+      </td>
+      <td  style="width:5em;">
+        <input type="button" id="goButton" value="Go" />
+      </td>
     </tr>
     <tr>
       <div class="TabulatorOutline" id="DummyUUID">
-          <table id="outline"></table>
+        <table id="outline"></table>
       </div>
     </tr>
-</table>
+  </table>
 </body>
 </html
