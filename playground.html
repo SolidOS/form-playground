@@ -361,7 +361,8 @@
       addToTray(mainTray, ns.rdf('type')) // A property
       addToTray(mainTray, ns.rdf('List')) // A class
       addToTray(mainTray, ns.vcard('Individual')) // A property
-      addToTray(mainTray, $rdf.sym('https://timbl.com/timbl/Public/2020/Epidemic/Work%20From%20Home%20status%20and%20epidemic%20monitoring/Files/wfh-form.ttl'))
+      let wfhForm = $rdf.sym('https://timbl.com/timbl/Public/2020/Epidemic/Work%20From%20Home%20status%20and%20epidemic%20monitoring/Files/wfh-form.ttl#this')
+      addToTray(mainTray, wfhForm)
 
     }
 
