@@ -1,0 +1,211 @@
+#Processed by Id
+        #    using base file:///Users/timbl/src/github.com/solid/form-playground/examples/
+             @prefix : <http://www.w3.org/ns/shacl#> .
+    @prefix ab: <http://www.w3.org/ns/pim/ab#> .
+    @prefix dct: <http://purl.org/dc/terms/> .
+    @prefix forms: <contact-form-from-shapes.ttl#> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix shapes: <contacts-shapes.ttl#> .
+    @prefix ui: <http://www.w3.org/ns/ui#> .
+    @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+    @prefix xf: <http://www.w3.org/ns/pim/xform#> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+     @forSome <#_g0>,
+                <#_g1>,
+                <#_g2> .
+    
+    forms:ContactForm     a ui:Form;
+         dct:title "Contact form from shapes";
+         ui:part  [
+             a ui:SingleLineTextField;
+             ui:property vcard:note ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property vcard:title ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property vcard:role ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property vcard:organization-name ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property vcard:fn ],
+                 [
+             a ui:DateTimeField;
+             ui:property vcard:anniversary ],
+                 [
+             a ui:Choice;
+             ui:default vcard:Individual;
+             ui:fixed true;
+             ui:property rdf:type ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:DatatypeProperty;
+             ui:property vcard:url;
+             ui:use <#_g0> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:DatatypeProperty;
+             ui:property vcard:hasTelephone;
+             ui:use <#_g1> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:DatatypeProperty;
+             ui:property vcard:hasEmail;
+             ui:use <#_g2> ] .
+    
+    shapes:AddressBookShape     a :NodeShape;
+         :property  [
+             :datatype xsd:string;
+             :minCount 1;
+             :path vcard:fn ],
+                 [
+             :minCount 1;
+             :path vcard:nameEmailIndex ],
+                 [
+             a :FollowMe;
+             :count 1;
+             :path vcard:groupIndex ],
+                 [
+             :mincount 0;
+             :path vcard:includesGroup ],
+                 [
+             a :FollowMe;
+             :count 1;
+             :path vcard:inAddressBook ];
+         :targetClass vcard:AddressBook .
+    
+    shapes:EmailShape     a :NodeShape;
+         xf:cat <#_g2>;
+         :property  [
+             :count 1;
+             :path vcard:value;
+             :pattern "^mailto:" ];
+         :targetObjectsOf vcard:hasEmail .
+    
+    shapes:GroupShape     a :NodeShape;
+         :property  [
+             :datatype xsd:string;
+             :minCount 1;
+             :path vcard:fn ],
+                 [
+             :path vcard:member ];
+         :targetClass vcard:Group .
+    
+    shapes:IndividualShape     a :NodeShape;
+         xf:correspondingForm forms:ContactForm;
+         :closed true;
+         :ignoredProperties  (
+        owl:sameAs
+        ab:ABPersonFlags
+        ab:ABDepartment
+        ab:InstantMessage
+        <http://purl.org/dc/elements/1.1/created>
+        <http://purl.org/dc/elements/1.1/modified> );
+         :property  [
+             :count 1;
+             :path rdf:type;
+             :value vcard:Individual ],
+                 [
+             :datatype xsd:string;
+             :message "Full names without spaces are typically (not always) wrong.";
+             :minCount 1;
+             :path vcard:fn;
+             :pattern ".* .*";
+             :severity :Warning ],
+                 [
+             :maxCount 1;
+             :mixCount 1;
+             :path vcard:hasUID;
+             :pattern "^urn:uuid:" ],
+                 [
+             :maxCount 1;
+             :path vcard:hasName ],
+                 [
+             :path vcard:hasPhoto ],
+                 [
+             :path vcard:hasRelated ],
+                 [
+             :path vcard:url ],
+                 [
+             :path vcard:hasAddress ],
+                 [
+             :datatype xsd:dateTime;
+             :maxCount 1;
+             :path vcard:anniversary ],
+                 [
+             :path vcard:hasEmail ],
+                 [
+             :path vcard:hasTelephone ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:organization-name ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:role ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:title ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:note ],
+                 [
+             a :BackwardLink;
+             :maxCount 1;
+             :minCount 1;
+             :path vcard:inAddressBook ];
+         :targetClass vcard:Individual .
+    
+    shapes:NameShape     a :NodeShape;
+         :closed true;
+         :property  [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:family-name ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:given-name ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:additional-name ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:honorific-prefix ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path vcard:honorific-suffix ];
+         :targetObjectOf vcard:hasName .
+    
+    shapes:TelephoneShape     a :NodeShape;
+         xf:cat <#_g1>;
+         :property  [
+             :count 1;
+             :nodeKind :IRI;
+             :path vcard:value;
+             :pattern "^tel:" ];
+         :targetObjectsOf vcard:hasTelephone .
+    
+    shapes:WebPageShape     a :NodeShape;
+         xf:cat <#_g0>;
+         :property  [
+             :count 1;
+             :path vcard:value;
+             :pattern "^https?:" ];
+         :targetObjectsOf vcard:url .
+    
+    vcard:Individual     ui:creationForm forms:ContactForm .
+    

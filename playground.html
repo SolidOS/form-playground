@@ -5,7 +5,8 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <link type="text/css" rel="stylesheet" href="mash.css" />
   <!-- <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script> -->
-  <script type="text/javascript" src="mashlib.js"></script>
+  <!-- <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script> -->
+  <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     // const panes = require('mashlib')
@@ -43,7 +44,9 @@
         await kb.fetcher.load(ontologyMap[uri], Object.assign({baseURI: uri}, loadOptions))
         return
       }
-      if (uri.startsWith('http:')) {
+      if (uri.startsWith('http://localhost')) {
+        // no problem
+      } else if (uri.startsWith('http:')) {
         uri = uri.split('#')[0] // chop off localid to get doc
         let suri = 'https:' + uri.slice(5)
         console.log('  Adjusted to be https: ' +  suri)
@@ -86,10 +89,17 @@
     }
 
     function queryFromForm(kb, form) {
+      function newOptionalClause () {
+        var clause = new $rdf.IndexedFormula()
+        query.pat.optional.push(clause)
+        return clause
+      }
       var v = 1
       var query = new $rdf.Query()
+      query.pat.optional = []
       const root = new $rdf.Variable('?root')
       function doForm(form, subject) {
+        console.log('  queryFromForm:', form)
         var parts =  kb.any(form, ns.ui('parts'))
         if (parts) {
           parts = parts.elements
@@ -102,11 +112,15 @@
           let pred = kb.the(part, ns.ui('property'))
           if (!pred) throw new Error('wot no property')
           var object = new $rdf.Variable('v' + v++) // @@ make variable name cute from pred
-          query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
+          // query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
+
+          const oneOpt = newOptionalClause()
+          query.vars.push(object)
+          oneOpt.add(subject, pred, object)
+
           if (kb.holds(part, ns.rdf('type'), ns.ui('Group'))
             || kb.holds(part, ns.rdf('type'), ns.ui('Form'))) {
               doForm(part, object)
-
           }
         }
       }
@@ -122,17 +136,17 @@
       let klass = $rdf.sym($rdf.uri.join(formEle.value, window.location.href))
       return createNewThingOfType(klass)
     }
-    async function applyForm ( event ) {
-      let uri = $rdf.uri.join(subjectEle.value, window.location.href)
-      let subject = $rdf.sym(uri)
-      console.log("Subject field " + subjectEle.value)
+
+    function getThingFromField (subjectEle) {
+      return $rdf.sym($rdf.uri.join(subjectEle.value, window.location.href))
+    }
+    async function applyForm ( _event ) {
+      let subject = getThingFromField(subjectEle)
       console.log("Loading subject: " + subject)
       await adjustAndLoadAndCatch(subject, loadOptions)
       console.log(`Loaded subject   ${subject} ✅`)
 
-      let formURI = $rdf.uri.join(formEle.value, window.location.href)
-      let form = $rdf.sym(formURI)
-      console.log("Form field " + formEle.value)
+      let form = getThingFromField(formEle)
       console.log("Loading form: " + form)
       await adjustAndLoadAndCatch(form, loadOptions)
       console.log(`Loaded form ${form} ✅`)
@@ -162,7 +176,6 @@
       }
       console.log(`Loaded ontologies ✅`)
 
-
       const params = new URLSearchParams(location.search)
       params.set('subject', subject.uri);
       params.set('form', form.uri);
@@ -179,6 +192,49 @@
 
       // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
       // outliner.GotoSubject(subject, true, undefined, true, undefined);
+    }
+
+    async function makeTableFromForm (_event) {
+      let subject = getThingFromField(subjectEle)
+      console.log("Loading subject: " + subject)
+      await adjustAndLoadAndCatch(subject, loadOptions)
+      console.log(`Loaded subject   ${subject} ✅`)
+
+      let form = getThingFromField(formEle)
+      console.log("Loading form: " + form)
+      await adjustAndLoadAndCatch(form, loadOptions)
+      console.log(`Loaded form ${form} ✅`)
+
+      var query
+      try {
+        query = queryFromForm(kb, form)
+      } catch (err) {
+        box.appendChild(UI.widgets.errorMessageBlock(dom, err))
+      }
+      console.log('query:', query.pat)
+      console.log('query pattern:', query.pat)
+
+      box.innerHTML = ''
+      const type = null // @@ ?
+      console.log('Query:')
+
+
+      var tableDiv = UI.table(dom, {
+        query: query,
+        keyVariable: '?root', // Charactersic of row
+        // sortBy: '?created', // By default, sort by date
+        // sortReverse: true, //   most recent at the top
+        /*
+        hints: {
+          '?issue': { linkFunction: exposeThisOverlay, label: 'Title' },
+          '?created': { cellFormat: 'shortDate' },
+          '?state': { initialSelection: selectedStates, label: 'Status' }
+        }
+        */
+      })
+
+      box.appendChild(tableDiv)
+
     }
 
     async function createNewThingOfType  (klass) {
@@ -240,11 +296,10 @@
       card.style.backgroundColor = '#ffc' // yellow - pending
       try {
         await adjustAndLoadAndCatch(thing.doc(), loadOptions)
-        console.info('Card: OK loading ' + thing)
-
+        console.info('  addToTray: OK loading ' + thing)
       } catch (err) {
         error = err
-        console.warn('Card: Error loading ' + thing + '+ ' + err)
+        console.warn('  addToTray: Error loading ' + thing + '+ ' + err)
       }
       if (error) {
         tr.children[1].appendChild(UI.widgets.errorMessageBlock(dom, '' + error))
@@ -284,6 +339,9 @@
 
     const applyButton =  dom.getElementById('applyButton')
     applyButton.style = style.signInButtonStyle // not normal style
+
+    const makeTableButton =  dom.getElementById('makeTableButton')
+    makeTableButton.style = style.signInButtonStyle // not normal style
 
     const addToTrayButton =  dom.getElementById('addToTrayButton')
     addToTrayButton.addEventListener('click', addSubjectToTray)
@@ -329,6 +387,7 @@
 
     goButton.addEventListener('click', expandDataBowser, false);
     applyButton.addEventListener('click', applyForm, false);
+    makeTableButton.addEventListener('click', makeTableFromForm, false);
 
     let initialSubject = new URLSearchParams(self.location.search).get("subject")
     if (initialSubject) {
@@ -404,8 +463,11 @@
     <tr style="font-size:100%">
       <td style="padding:1em; width:5em;" id="icon">Form to use:</td>
       <td colspan="4"><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
-      <td  style="width:5em;"><input type="button" id="applyButton" value="Apply" />
-      <input type="button" id="makeNewOfThisTypeButton" value="Make new thing of this type" /></td>
+      <td  style="width:5em;">
+        <input type="button" id="applyButton" value="Apply form to subject" />
+        <input type="button" id="makeTableButton" value="Make table" />
+        <input type="button" id="makeNewOfThisTypeButton" value="Make new thing of this type" />
+      </td>
     </tr>
 
     <tr>
