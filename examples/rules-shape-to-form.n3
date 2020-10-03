@@ -55,6 +55,6 @@
     } => {  ?f ui:part [ a ui:Choice;
           ui:canMintNew true;
           ui:from owl:DatatypeProperty; # @@ some class
-          ui:part [ is xf:cat of ?shape2 ];
+          ui:use [ is xf:cat of ?shape2 ];
           ui:property ?property ]
     } .

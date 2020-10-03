@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html id="docHTML">
 <head>
-  <title>Solid Form Playground</title>
+  <title>Solid Data Playground</title>
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <link type="text/css" rel="stylesheet" href="mash.css" />
   <!-- <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script> -->
@@ -71,7 +71,50 @@
       }
     }
 
+    function getThingFromField (subjectEle) {
+      return $rdf.sym($rdf.uri.join(subjectEle.value, window.location.href))
+    }
+
 //////////////// User actions
+
+
+    async function loadProject (_event) {
+        let project = getThingFromField(projectURI)
+        console.log("Loading project: " + subject)
+        await adjustAndLoadAndCatch(subject, loadOptions)
+        console.log(`Loaded projet file ${subject} ✅`)
+        let resourceGroup = kb.any(project, ns.meeting('resourceGoup'))
+        let resources = kb.each(project, ns.meeting('member'))
+        for (var resource of resources) {
+          addToTray(mainTry, resource)
+        }
+    }
+
+    async function saveProject (_event) {
+      let project = getThingFromField(projectURI) // should end #this
+      let suffix = '/index.ttl#this'
+      if (!project.uri.endsWith(suffix)) {
+        alert(`Please give a project URI which ends with "${suffix}"`)
+        return
+      }
+      let doc = project.doc()
+      kb.remove(kb.statementsMatching(null, null, null, doc)) // Flush out our record
+      kb.add (project, ns.rdf('type'), ns.meeting('PlaygroundProject'), doc)
+      let resourceGroup = kb.sym(doc.uri + '#Resources')
+      kb.add (project, ns.meeting('resourceGoup'), resourceGroup, doc)
+      for (var ele of mainTray.children) {
+        if (ele.subject) {
+          kb.add(resourceGroup, ns.meeting('member'), ele.subject, doc)
+        }
+      }
+      try {
+        kb.fetcher.putBack(doc)
+      } catch (err) {
+        const msg = 'Error saving ' + doc.uri + err
+        console.log(msg)
+        alert(msg)
+      }
+    }
 
     function expandDataBowser ( event ) {
       let uri = $rdf.uri.join(subjectEle.value, window.location.href)
@@ -87,6 +130,8 @@
       box.innerHTML = '<table id="outline"></table>'
       outliner.GotoSubject(subject, true, undefined, true, undefined);
     }
+
+    const USE_OPTIONAL = false
 
     function queryFromForm(kb, form) {
       function newOptionalClause () {
@@ -112,11 +157,13 @@
           let pred = kb.the(part, ns.ui('property'))
           if (!pred) throw new Error('wot no property')
           var object = new $rdf.Variable('v' + v++) // @@ make variable name cute from pred
-          // query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
-
-          const oneOpt = newOptionalClause()
-          query.vars.push(object)
-          oneOpt.add(subject, pred, object)
+          if (USE_OPTIONAL) {
+            const oneOpt = newOptionalClause()
+            query.vars.push(object)
+            oneOpt.add(subject, pred, object)
+          } else {
+            query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
+          }
 
           if (kb.holds(part, ns.rdf('type'), ns.ui('Group'))
             || kb.holds(part, ns.rdf('type'), ns.ui('Form'))) {
@@ -137,9 +184,6 @@
       return createNewThingOfType(klass)
     }
 
-    function getThingFromField (subjectEle) {
-      return $rdf.sym($rdf.uri.join(subjectEle.value, window.location.href))
-    }
     async function applyForm ( _event ) {
       let subject = getThingFromField(subjectEle)
       console.log("Loading subject: " + subject)
@@ -326,13 +370,22 @@
     // Build The playground
 
     const box = dom.getElementById('box')
+    const projectURI = dom.getElementById('projectURI')
+    projectURI.style = UI.style.textInputStyle
+    projectURI.style.width = '90%'
+
     const formEle = dom.getElementById('form')
     formEle.style = UI.style.textInputStyle
-    formEle.style.width = '45em'
+    formEle.style.width = '90%'
 
     const subjectEle = dom.getElementById('subject')
     subjectEle.style = UI.style.textInputStyle
-    subjectEle.style.width = '45em'
+    subjectEle.style.width = '90%'
+
+    const loadButton = dom.getElementById('loadButton')
+    // loadButton.style = UI.textButtonStyle
+    const saveButton = dom.getElementById('saveButton')
+
 
     const goButton = dom.getElementById('goButton')
     goButton.style = UI.textButtonStyle
@@ -345,7 +398,6 @@
 
     const addToTrayButton =  dom.getElementById('addToTrayButton')
     addToTrayButton.addEventListener('click', addSubjectToTray)
-
 
     const makeNewOfThisTypeButton =  dom.getElementById('makeNewOfThisTypeButton')
     makeNewOfThisTypeButton.style = style.signInButtonStyle // not normal style
@@ -385,6 +437,8 @@
 
     // Basic stuff:
 
+    loadButton.addEventListener('click', loadProject, false);
+    saveButton.addEventListener('click', saveProject, false);
     goButton.addEventListener('click', expandDataBowser, false);
     applyButton.addEventListener('click', applyForm, false);
     makeTableButton.addEventListener('click', makeTableFromForm, false);
@@ -439,16 +493,26 @@
 </head>
 <body style="padding: 1em;">
 
-  <table style="width:100%; margin-top:1em; margin-bottom:1em;">
+  <table style="width:95%; margin-top:1em; margin-bottom:1em;">
     <tr style="font-size:100%">
-      <td colspan="5"><h1>Form Playground</h1></td>
-      <td id="logInbox" style="width:5em;"></td>
+      <td colspan="5"><h1>Data Playground</h1></td>
+      <td id="logInbox" ></td>
     </tr>
 
     <tr style="font-size:100%">
-      <td style="padding:1em; width:5em;" id="icon">Subject:</td>
+      <td style="padding:1em; width:5em;">Playground URI:</td>
+      <td colspan="4"><input id="projectURI" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
+      <td id="loadSaveCell">
+        <input type="button" id="loadButton" value="Load project" />
+        <input type="button" id="saveButton" value="Save project" />
+
+      </td>
+    </tr>
+
+    <tr style="font-size:100%">
+      <td style="padding:1em; width:5em;">Subject:</td>
       <td colspan="4"><input id="subject" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
-      <td id="notlogInbox" style="width:5em;"></td>
+      <td id="notlogInbox" ></td>
     </tr>
 
     <tr style="font-size:100%" id="actionBar">
@@ -461,7 +525,7 @@
     </tr>
 
     <tr style="font-size:100%">
-      <td style="padding:1em; width:5em;" id="icon">Form to use:</td>
+      <td style="padding:1em; width:5em;" >Form to use:</td>
       <td colspan="4"><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
       <td  style="width:5em;">
         <input type="button" id="applyButton" value="Apply form to subject" />
