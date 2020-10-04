@@ -1,21 +1,50 @@
-# Solid Form Playground
+# Solid Data Playground
 
-See the [form playground live on github pages](https://solid.github.io/form-playground/playground.html)
+See the [data playground live on github pages](https://solid.github.io/form-playground/playground.html)
 
 Play with solid forms. Apply a random form to a random object.
 
 Todo: Create and edit forms, and associate forms with types.
 
-Possible future directions:
+## Basically how this works
 
-- Try out a given form in real time on an arbitrary subject
-- Fork, and edit, forms
-- Build simple apps using just a form or two: user level programming
-- Drill though to underlying shapes
-- Drill though to underlying ontology (schema)
-- Analyze, visualize ontology
-- Collaboratively edit ontology
-- Allow one to be able to accumulate a bunch of resources into a project as a first class object
+You can accumulate  a set of resources you will need for the project. Drag them (their URIs))
+into the big grey tray.
+
+To save the project, put the URI of it into the top URI field.
+ It should end with `/index.ttl#this`.  
+
+You can apply various functions -- to be extended of course -- to one or two things on the web.
+
+ - See the subject viewed with a given form
+ - See a form viewed with the form form
+ - See a SolidOD default view of the subject
+
+## Experimental
+
+ You can also set the subject URI for something new you want to create.
+ Set the class of the new thing in the second URI field. Press the button.
+You should be able then to edit details of the thing with the form of your choice.
+
+You should be able to create a new form, in fact, and edit with with the form form.
+
+Making a table view of some data, using a form to generate the query on
+which the table is based.
+
+## Possible future directions:
+
+We need a form for editing SHACL shapes sop we can play with shapes in the same way.
+
+ - Build simple apps using just a form or two: user level programming
+ - Drill though to underlying shapes
+ - Drill though to underlying ontology (schema)
+ - Analyze, visualize ontologies
+ - Collaboratively edit forms
+ - Collaboratively edit shapes
+ - Collaboratively edit ontologies
+ - Collaboratively edit rules converting between different systems
+
+
 
 ## Simple data browser
 
