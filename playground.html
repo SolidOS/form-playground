@@ -5,8 +5,8 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <link type="text/css" rel="stylesheet" href="mash.css" />
   <!-- <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script> -->
-  <!-- <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script> -->
-  <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script>
+  <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script>
+  <!-- <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script> -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     // const panes = require('mashlib')
@@ -88,6 +88,9 @@
         for (var resource of resources) {
           addToTray(mainTry, resource)
         }
+        const params = new URLSearchParams(location.search) // Save project URI in URL bar
+        params.set('project', getThingFromField(projectURI).uri);
+        window.history.replaceState({}, '', `${location.pathname}?${params}`);
     }
 
     async function saveProject (_event) {
@@ -122,7 +125,7 @@
       console.log("User requests " + uri)
 
       const params = new URLSearchParams(location.search)
-      params.set('uri', uri);
+      params.set('subject', uri);
       window.history.replaceState({}, '', `${location.pathname}?${params}`);
 
       var subject = kb.sym(uri);
@@ -221,6 +224,7 @@
       console.log(`Loaded ontologies ✅`)
 
       const params = new URLSearchParams(location.search)
+      params.set('project', getThingFromField(projectURI).uri);
       params.set('subject', subject.uri);
       params.set('form', form.uri);
       window.history.replaceState({}, '', `${location.pathname}?${params}`);
@@ -443,9 +447,16 @@
     applyButton.addEventListener('click', applyForm, false);
     makeTableButton.addEventListener('click', makeTableFromForm, false);
 
+    let initialProject = new URLSearchParams(self.location.search).get("project")
+    if (initialProject) {
+      projectURI.value = initialProject
+      console.log('Loading project ' + initialProject)
+      // alert('loading ' + initialProject)
+      loadProject()
+    }
     let initialSubject = new URLSearchParams(self.location.search).get("subject")
     if (initialSubject) {
-      subjectEle.value = initialSubject
+      subjectEle.value = initialProject
     }
     let initialForm = new URLSearchParams(self.location.search).get("form")
     if (initialForm) {
@@ -500,7 +511,7 @@
     </tr>
 
     <tr style="font-size:100%">
-      <td style="padding:1em; width:5em;">Playground URI:</td>
+      <td style="padding:1em; width:5em;">Project URI:</td>
       <td colspan="4"><input id="projectURI" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
       <td id="loadSaveCell">
         <input type="button" id="loadButton" value="Load project" />
@@ -516,7 +527,7 @@
     </tr>
 
     <tr style="font-size:100%" id="actionBar">
-      <td style="padding:1em; width:5em">at that URI:</td>
+      <td style="padding:1em; width:5em">for subject URI:</td>
       <td id="actionCell">
         <input type="button" id="goButton" value="View data" />
         <input type="button" id="addToTrayButton" value="Add to tray" />
@@ -525,7 +536,7 @@
     </tr>
 
     <tr style="font-size:100%">
-      <td style="padding:1em; width:5em;" >Form to use:</td>
+      <td style="padding:1em; width:5em;" >Form to use on subject:</td>
       <td colspan="4"><input id="form" type="text" style="font-size:100%; min-width:30em; padding:0.5em; width:95%;"/></td>
       <td  style="width:5em;">
         <input type="button" id="applyButton" value="Apply form to subject" />
