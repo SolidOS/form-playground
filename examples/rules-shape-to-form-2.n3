@@ -7,9 +7,11 @@
 
 @prefix xf: <http://www.w3.org/ns/pim/xform#>. # @@ think of where to put this
 
-#  { ?s a sh:NodeShape; sh:targetClass ?class }
-#      =>
-#  { ?s  xf:correspondingForm [ a ui:Form; is ui:creationForm of ?class ] } .
+#  2020-10-04  Try 2  -- more rules needed for shsh than for ontancts.
+#
+  { ?s a sh:NodeShape; sh:targetClass ?class }
+      =>
+  { ?s  xf:correspondingForm [ a ui:Form; is ui:creationForm of ?class ] } .
 
 # Associated class
 

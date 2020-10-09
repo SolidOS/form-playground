@@ -1,0 +1,506 @@
+#Processed by Id
+        #    using base file:///Users/timbl/src/github.com/solid/form-playground/examples/
+             @prefix : <http://www.w3.org/ns/shacl#> .
+    @prefix dct: <http://purl.org/dc/terms/> .
+    @prefix forms: <shape-form-from-shapes.ttl#> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix shapes: <shacl-shacl.ttl#> .
+    @prefix shsh: <http://www.w3.org/ns/shacl-shacl#> .
+    @prefix ui: <http://www.w3.org/ns/ui#> .
+    @prefix xf: <http://www.w3.org/ns/pim/xform#> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+     @forSome <#_g0>,
+                <#_g1>,
+                <#_g2>,
+                <#_g3>,
+                <#_g4>,
+                <#_g5>,
+                <#_g6>,
+                <#_g7>,
+                <#_g8>,
+                <#_g9>,
+                <#_g10> .
+    
+    shapes:ShapeShape     xf:correspondingForm forms:ShapeForm .
+    
+    forms:ShapeForm     dct:title "Shape form from shapes" .
+    
+    :NodeShape     ui:creationForm <#_g1>,
+                <#_g2> .
+    
+    :PropertyShape     ui:creationForm <#_g1>,
+                <#_g2> .
+    
+    shsh:     rdfs:comment "This shapes graph can be used to validate SHACL shapes graphs against a subset of the syntax rules."@en;
+         rdfs:label "SHACL for SHACL"@en;
+         :declare  [
+             :namespace "http://www.w3.org/ns/shacl-shacl#";
+             :prefix "shsh" ] .
+    
+    shsh:EntailmentShape     a :NodeShape;
+         :nodeKind :IRI;
+         :targetObjectsOf :entailment .
+    
+    shsh:ListNodeShape     a :NodeShape;
+         rdfs:comment "Defines constraints on what it means for a node to be a node within a well-formed RDF list. Note that this does not check whether the rdf:rest items are also well-formed lists as this would lead to unsupported recursion."@en;
+         rdfs:label "List node shape"@en;
+         :or  (
+         [
+                 :hasValue ();
+                 :property  [
+                     :maxCount 0;
+                     :path rdf:first ],
+                         [
+                     :maxCount 0;
+                     :path rdf:rest ] ]
+         [
+                 :not  [
+                     :hasValue () ];
+                 :property  [
+                     :maxCount 1;
+                     :minCount 1;
+                     :path rdf:first ],
+                         [
+                     :maxCount 1;
+                     :minCount 1;
+                     :path rdf:rest ] ] ) .
+    
+    shsh:ListShape     a :NodeShape;
+         rdfs:comment "A shape describing well-formed RDF lists. Currently does not check for non-recursion. This could be expressed using SHACL-SPARQL."@en;
+         rdfs:label "List shape"@en;
+         rdfs:seeAlso <https://www.w3.org/TR/shacl/#syntax-rule-SHACL-list>;
+         :property  [
+             rdfs:comment "Each list member (including this node) must be have the shape shsh:ListNodeShape."@en;
+             :hasValue ();
+             :node shsh:ListNodeShape;
+             :path  [
+                 :zeroOrMorePath rdf:rest ] ] .
+    
+    shsh:NodeShapeShape     a :NodeShape;
+         :property  [
+             :maxCount 0;
+             :path :path ],
+                 [
+             :maxCount 0;
+             :path :lessThan ],
+                 [
+             :maxCount 0;
+             :path :lessThanOrEquals ],
+                 [
+             :maxCount 0;
+             :path :maxCount ],
+                 [
+             :maxCount 0;
+             :path :minCount ],
+                 [
+             :maxCount 0;
+             :path :qualifiedValueShape ],
+                 [
+             :maxCount 0;
+             :path :uniqueLang ];
+         :targetObjectsOf :node .
+    
+    shsh:PathListWithAtLeast2Members     a :NodeShape;
+         :node shsh:ListShape;
+         :property  [
+             :minCount 2;
+             :path  [
+                 :oneOrMorePath rdf:rest ] ] .
+    
+    shsh:PathNodeShape     :xone  (
+         [
+                 :nodeKind :IRI ]
+         [
+                 :node shsh:PathListWithAtLeast2Members;
+                 :nodeKind :BlankNode ]
+         [
+                 :closed true;
+                 :nodeKind :BlankNode;
+                 :property  [
+                     :maxCount 1;
+                     :minCount 1;
+                     :node shsh:PathListWithAtLeast2Members;
+                     :path :alternativePath ] ]
+         [
+                 :closed true;
+                 :nodeKind :BlankNode;
+                 :property  [
+                     :maxCount 1;
+                     :minCount 1;
+                     :path :inversePath ] ]
+         [
+                 :closed true;
+                 :nodeKind :BlankNode;
+                 :property  [
+                     :maxCount 1;
+                     :minCount 1;
+                     :path :zeroOrMorePath ] ]
+         [
+                 :closed true;
+                 :nodeKind :BlankNode;
+                 :property  [
+                     :maxCount 1;
+                     :minCount 1;
+                     :path :oneOrMorePath ] ]
+         [
+                 :closed true;
+                 :nodeKind :BlankNode;
+                 :property  [
+                     :maxCount 1;
+                     :minCount 1;
+                     :path :zeroOrOnePath ] ] ) .
+    
+    shsh:PathShape     a :NodeShape;
+         rdfs:comment "A shape that can be used to validate the syntax rules of well-formed SHACL paths."@en;
+         rdfs:label "Path shape"@en;
+         rdfs:seeAlso <https://www.w3.org/TR/shacl/#property-paths>;
+         :property  [
+             :node shsh:PathNodeShape;
+             :path  [
+                 :zeroOrMorePath  [
+                     :alternativePath  (
+                     (
+                         [
+                                 :zeroOrMorePath rdf:rest ]
+                        rdf:first )
+                     (
+                        :alternativePath
+                         [
+                                 :zeroOrMorePath rdf:rest ]
+                        rdf:first )
+                    :inversePath
+                    :zeroOrMorePath
+                    :oneOrMorePath
+                    :zeroOrOnePath ) ] ] ] .
+    
+    shsh:PropertyShapeShape     a :NodeShape;
+         :property  [
+             :maxCount 1;
+             :minCount 1;
+             :node shsh:PathShape;
+             :path :path ];
+         :targetObjectsOf :property .
+    
+    shsh:ShapeShape     a :NodeShape;
+         rdfs:comment "A shape that can be used to validate syntax rules for other shapes."@en;
+         rdfs:label "Shape shape"@en;
+         xf:cat <#_g6>,
+                <#_g10>;
+         xf:correspondingForm <#_g1>,
+                <#_g2>;
+         :or  (
+         [
+                 :not  [
+                     :class rdfs:Class;
+                     :or  (
+                     [
+                             :class :NodeShape ]
+                     [
+                             :class :PropertyShape ] ) ] ]
+         [
+                 :nodeKind :IRI ] );
+         :property  [
+             :nodeKind :IRIOrLiteral;
+             :path :targetNode ],
+                 [
+             :nodeKind :IRI;
+             :path :targetClass ],
+                 [
+             :nodeKind :IRI;
+             :path :targetSubjectsOf ],
+                 [
+             :nodeKind :IRI;
+             :path :targetObjectsOf ],
+                 [
+             :maxCount 1;
+             :nodeKind :IRI;
+             :path :severity ],
+                 [
+             :or  (
+             [
+                     :datatype xsd:string ]
+             [
+                     :datatype rdf:langString ] );
+             :path :message ],
+                 [
+             :in  (
+            true
+            false );
+             :maxCount 1;
+             :path :deactivated ],
+                 [
+             :node shsh:ListShape;
+             :path :and ],
+                 [
+             :nodeKind :IRI;
+             :path :class ],
+                 [
+             :datatype xsd:boolean;
+             :maxCount 1;
+             :path :closed ],
+                 [
+             :maxCount 1;
+             :node shsh:ListShape;
+             :path :ignoredProperties ],
+                 [
+             :nodeKind :IRI;
+             :path  (
+            :ignoredProperties
+             [
+                     :zeroOrMorePath rdf:rest ]
+            rdf:first ) ],
+                 [
+             :maxCount 1;
+             :nodeKind :IRI;
+             :path :datatype ],
+                 [
+             :nodeKind :IRI;
+             :path :disjoint ],
+                 [
+             :nodeKind :IRI;
+             :path :equals ],
+                 [
+             :maxCount 1;
+             :node shsh:ListShape;
+             :path :in ],
+                 [
+             :maxCount 1;
+             :node shsh:ListShape;
+             :path :languageIn ],
+                 [
+             :datatype xsd:string;
+             :path  (
+            :languageIn
+            <#_g0>
+            rdf:first ) ],
+                 [
+             :nodeKind :IRI;
+             :path :lessThan ],
+                 [
+             :nodeKind :IRI;
+             :path :lessThanOrEquals ],
+                 [
+             :datatype xsd:integer;
+             :maxCount 1;
+             :path :maxCount ],
+                 [
+             :maxCount 1;
+             :nodeKind :Literal;
+             :path :maxExclusive ],
+                 [
+             :maxCount 1;
+             :nodeKind :Literal;
+             :path :maxInclusive ],
+                 [
+             :datatype xsd:integer;
+             :maxCount 1;
+             :path :maxLength ],
+                 [
+             :datatype xsd:integer;
+             :maxCount 1;
+             :path :minCount ],
+                 [
+             :maxCount 1;
+             :nodeKind :Literal;
+             :path :minExclusive ],
+                 [
+             :maxCount 1;
+             :nodeKind :Literal;
+             :path :minInclusive ],
+                 [
+             :datatype xsd:integer;
+             :maxCount 1;
+             :path :minLength ],
+                 [
+             :in  (
+            :BlankNode
+            :IRI
+            :Literal
+            :BlankNodeOrIRI
+            :BlankNodeOrLiteral
+            :IRIOrLiteral );
+             :maxCount 1;
+             :path :nodeKind ],
+                 [
+             :node shsh:ListShape;
+             :path :or ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path :pattern ],
+                 [
+             :datatype xsd:string;
+             :maxCount 1;
+             :path :flags ],
+                 [
+             :datatype xsd:integer;
+             :maxCount 1;
+             :path :qualifiedMaxCount ],
+                 [
+             :datatype xsd:integer;
+             :maxCount 1;
+             :path :qualifiedMinCount ],
+                 [
+             :maxCount 1;
+             :path :qualifiedValueShape ],
+                 [
+             :datatype xsd:boolean;
+             :maxCount 1;
+             :path :qualifiedValueShapesDisjoint ],
+                 [
+             :datatype xsd:boolean;
+             :maxCount 1;
+             :path :uniqueLang ],
+                 [
+             :node shsh:ListShape;
+             :path :xone ];
+         :targetClass :NodeShape,
+                :PropertyShape;
+         :targetObjectsOf :node,
+                :not,
+                :property,
+                :qualifiedValueShape;
+         :targetSubjectsOf :and,
+                :class,
+                :closed,
+                :datatype,
+                :disjoint,
+                :equals,
+                :flags,
+                :hasValue,
+                :ignoredProperties,
+                :in,
+                :languageIn,
+                :lessThan,
+                :lessThanOrEquals,
+                :maxCount,
+                :maxExclusive,
+                :maxInclusive,
+                :maxLength,
+                :minCount,
+                :minExclusive,
+                :minInclusive,
+                :minLength,
+                :node,
+                :nodeKind,
+                :not,
+                :or,
+                :pattern,
+                :property,
+                :qualifiedMaxCount,
+                :qualifiedMinCount,
+                :qualifiedValueShape,
+                :qualifiedValueShapesDisjoint,
+                :sparql,
+                :targetClass,
+                :targetNode,
+                :targetObjectsOf,
+                :targetSubjectsOf,
+                :uniqueLang,
+                :xone;
+         :xone  (
+        shsh:NodeShapeShape
+        shsh:PropertyShapeShape ) .
+    
+    shsh:ShapesGraphShape     a :NodeShape;
+         :nodeKind :IRI;
+         :targetObjectsOf :shapesGraph .
+    
+    shsh:ShapesListShape     a :NodeShape;
+         xf:cat <#_g3>,
+                <#_g4>,
+                <#_g5>,
+                <#_g7>,
+                <#_g8>,
+                <#_g9>;
+         :property  [
+             :node shsh:ShapeShape;
+             :path  (
+             [
+                     :zeroOrMorePath rdf:rest ]
+            rdf:first ) ];
+         :targetObjectsOf :and,
+                :or,
+                :xone .
+    
+    <#_g0>     :zeroOrMorePath rdf:rest .
+    
+    <#_g1>     a ui:Form;
+         ui:part  [
+             a ui:SingleLineTextField;
+             ui:property :flags ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property :pattern ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property  (
+            :languageIn
+            <#_g0>
+            rdf:first ) ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :xone;
+             ui:use <#_g7> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :or;
+             ui:use <#_g8> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :and;
+             ui:use <#_g9> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :qualifiedValueShape;
+             ui:use <#_g10> ] .
+    
+    <#_g2>     a ui:Form;
+         ui:part  [
+             a ui:SingleLineTextField;
+             ui:property :flags ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property :pattern ],
+                 [
+             a ui:SingleLineTextField;
+             ui:property  (
+            :languageIn
+            <#_g0>
+            rdf:first ) ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :xone;
+             ui:use <#_g3> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :or;
+             ui:use <#_g4> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :and;
+             ui:use <#_g5> ],
+                 [
+             a ui:Choice;
+             ui:canMintNew true;
+             ui:from owl:Thing;
+             ui:property :qualifiedValueShape;
+             ui:use <#_g6> ] .
+    

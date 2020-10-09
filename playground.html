@@ -5,8 +5,8 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <link type="text/css" rel="stylesheet" href="mash.css" />
   <!-- <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script> -->
-  <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script>
-  <!-- <script type="text/javascript" src="https://timbl.com/timbl/Automation/Library/Mashup/mashlib.js"></script> -->
+  <!-- <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script> -->
+  <script type="text/javascript" src="http://localhost:3080/devel/github.com/solid/mashlib-dev/workspaces/mashlib/dist/mashlib.js"></script>
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     // const panes = require('mashlib')
@@ -72,6 +72,7 @@
     }
 
     function getThingFromField (subjectEle) {
+      if (subjectEle.value.length === 0) return null
       return $rdf.sym($rdf.uri.join(subjectEle.value, window.location.href))
     }
 
@@ -80,9 +81,14 @@
 
     async function loadProject (_event) {
         let project = getThingFromField(projectURI)
-        console.log("Loading project: " + subject)
-        await adjustAndLoadAndCatch(subject, loadOptions)
-        console.log(`Loaded projet file ${subject} ✅`)
+        const doc = project.doc()
+        console.log("Loading project: " + project)
+        await adjustAndLoadAndCatch(project, loadOptions)
+        console.log(`Loaded projet file ${project} ✅`)
+
+        subjectEle.value = kb.anyValue(project, ns.schema('target'), null, doc) || ''
+        formEle.value = kb.anyValue(project, ns.meeting('form'), null, doc) || ''
+
         let resourceGroup = kb.any(project, ns.meeting('resourceGoup'))
         let resources = kb.each(project, ns.meeting('member'))
         for (var resource of resources) {
@@ -103,6 +109,13 @@
       let doc = project.doc()
       kb.remove(kb.statementsMatching(null, null, null, doc)) // Flush out our record
       kb.add (project, ns.rdf('type'), ns.meeting('PlaygroundProject'), doc)
+
+      if (getThingFromField(subjectEle)) {
+        kb.add(project, ns.schema('target'), getThingFromField(subjectEle), doc)
+      }
+      if (getThingFromField(formEle)) {
+        kb.add(project, ns.meeting('form'), getThingFromField(formEle), doc)
+      }
       let resourceGroup = kb.sym(doc.uri + '#Resources')
       kb.add (project, ns.meeting('resourceGoup'), resourceGroup, doc)
       for (var ele of mainTray.children) {
@@ -117,6 +130,7 @@
         console.log(msg)
         alert(msg)
       }
+      console.log('Saved at ' + project)
     }
 
     function expandDataBowser ( event ) {
@@ -134,7 +148,7 @@
       outliner.GotoSubject(subject, true, undefined, true, undefined);
     }
 
-    const USE_OPTIONAL = false
+    const USE_OPTIONAL = true
 
     function queryFromForm(kb, form) {
       function newOptionalClause () {
@@ -145,38 +159,47 @@
       var v = 1
       var query = new $rdf.Query()
       query.pat.optional = []
-      const root = new $rdf.Variable('?root')
-      function doForm(form, subject) {
-        console.log('  queryFromForm:', form)
+      const root = new $rdf.Variable('root')
+      function doForm(form, subject, indent = '') {
+        console.log(indent + 'queryFromForm:' + form)
+        console.log(indent + ' ' + kb.any(form, ns.rdf('type')))
+
         var parts =  kb.any(form, ns.ui('parts'))
         if (parts) {
           parts = parts.elements
         } else {
           parts = kb.each(form, ns.ui('part'))
         }
-        console.log(`queryFromForm: ${parts.length} parts`)
-        if (parts.length === 0) throw new Error('No parts')
+        console.log(indent + ` ${parts.length} parts`)
+        if (parts.length === 0) return // throw new Error('No parts')
         for (var part of parts) {
           let pred = kb.the(part, ns.ui('property'))
-          if (!pred) throw new Error('wot no property')
-          var object = new $rdf.Variable('v' + v++) // @@ make variable name cute from pred
-          if (USE_OPTIONAL) {
-            const oneOpt = newOptionalClause()
+          var object
+          console.log(indent + ' - part type: ' + kb.any(part, ns.rdf('type')))
+          console.log(indent + '    prop: ' + pred)
+          if (pred) { // Do arc
+            var object = new $rdf.Variable('v' + v++) // @@ make variable name cute from pred
+            if (USE_OPTIONAL) {
+              const oneOpt = newOptionalClause()
+              oneOpt.add(subject, pred, object)
+            } else {
+              query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
+            }
             query.vars.push(object)
-            oneOpt.add(subject, pred, object)
-          } else {
-            query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
           }
-
+          if (kb.holds(part, ns.rdf('type'), ns.ui('Multiple'))) {
+            if (!object) throw new Error('Multiple has no property')
+            doForm(part, object, indent + '  m ')
+          }
           if (kb.holds(part, ns.rdf('type'), ns.ui('Group'))
             || kb.holds(part, ns.rdf('type'), ns.ui('Form'))) {
-              doForm(part, object)
+              doForm(part, subject, indent + '  g ') // A group does not have an arc in the data
           }
         }
       }
       doForm(form, root)
       return query
-    }
+    } // queryFromForm
 
     async function addSubjectToTray (_event) {
        addToTray(mainTray, $rdf.sym(subjectEle.value))
@@ -224,9 +247,10 @@
       console.log(`Loaded ontologies ✅`)
 
       const params = new URLSearchParams(location.search)
-      params.set('project', getThingFromField(projectURI).uri);
-      params.set('subject', subject.uri);
-      params.set('form', form.uri);
+      project = getThingFromField(projectURI)
+      if (project) params.set('project', project.uri);
+      // if (subject) params.set('subject', subject.uri);
+      // if (form) params.set('form', form.uri);
       window.history.replaceState({}, '', `${location.pathname}?${params}`);
 
       let store = subject.doc() // @@ need footprints, allow user cotrol of store
@@ -258,10 +282,12 @@
         query = queryFromForm(kb, form)
       } catch (err) {
         box.appendChild(UI.widgets.errorMessageBlock(dom, err))
+        return
       }
-      console.log('query:', query.pat)
+      console.log('query:', query)
       console.log('query pattern:', query.pat)
-
+      const sparql = $rdf.queryToSPARQL(query)
+      console.log('sparql:', sparql)
       box.innerHTML = ''
       const type = null // @@ ?
       console.log('Query:')
@@ -269,7 +295,7 @@
 
       var tableDiv = UI.table(dom, {
         query: query,
-        keyVariable: '?root', // Charactersic of row
+        keyVariable: 'root', // Charactersic of row
         // sortBy: '?created', // By default, sort by date
         // sortReverse: true, //   most recent at the top
         /*
@@ -422,7 +448,7 @@
 
     const statusArea = dom.getElementById('statusArea')
     const logInbox = dom.getElementById('logInbox')
-    const context = { div: logInbox, dom: dom, buttonStyle: UI.style.buttonStyle}
+    const context = { div: logInbox, dom, statusArea, buttonStyle: UI.style.buttonStyle}
     UI.authn.logIn(context).then(context => {
       me = context.me
       alert(me)
@@ -448,21 +474,22 @@
     makeTableButton.addEventListener('click', makeTableFromForm, false);
 
     let initialProject = new URLSearchParams(self.location.search).get("project")
+    var initialSubject, initialForm
+
     if (initialProject) {
       projectURI.value = initialProject
       console.log('Loading project ' + initialProject)
       // alert('loading ' + initialProject)
       loadProject()
-    }
-    let initialSubject = new URLSearchParams(self.location.search).get("subject")
-    if (initialSubject) {
-      subjectEle.value = initialProject
-    }
-    let initialForm = new URLSearchParams(self.location.search).get("form")
-    if (initialForm) {
-      formEle.value = initialForm
-    } else {
-      // formEle.value = 'https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'
+    } else { // not from project, from URI params
+      initialSubject = new URLSearchParams(self.location.search).get("subject")
+      if (initialSubject) {
+        subjectEle.value = initialProject
+      }
+      initialForm = new URLSearchParams(self.location.search).get("form")
+      if (initialForm) {
+        formEle.value = initialForm
+      }
     }
 
     goButton.addEventListener('click', expandDataBowser, false);
@@ -542,6 +569,8 @@
         <input type="button" id="applyButton" value="Apply form to subject" />
         <input type="button" id="makeTableButton" value="Make table" />
         <input type="button" id="makeNewOfThisTypeButton" value="Make new thing of this type" />
+        <br />
+        <a href="https://github.com/solid/form-playground" target="source">Fork me on Github</a>
       </td>
     </tr>
 
@@ -551,7 +580,7 @@
     </tr>
 
     <tr>
-      <td style='padding-top:1em;'>Form applied to subject:</td>
+      <td style='padding-top:1em;'>Result:</td>
       <td colspan="5">
         <div class="TabulatorOutline" style="margin:1em;" id="box">
           <table id="outline"></table>

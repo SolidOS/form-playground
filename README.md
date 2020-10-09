@@ -36,13 +36,16 @@ which the table is based.
 We need a form for editing SHACL shapes sop we can play with shapes in the same way.
 
  - Build simple apps using just a form or two: user level programming
- - Drill though to underlying shapes
+ - Drill though to underlying shapes, reuse those shapes.
  - Drill though to underlying ontology (schema)
  - Analyze, visualize ontologies
+ - Validate data with shapes.
  - Collaboratively edit forms
  - Collaboratively edit shapes
  - Collaboratively edit ontologies
  - Collaboratively edit rules converting between different systems
+ - Connect with shaperepo.com ?
+
 
 
 
