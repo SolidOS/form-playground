@@ -139,8 +139,10 @@
       console.log("User requests " + uri)
 
       const params = new URLSearchParams(location.search)
-      params.set('subject', uri);
-      window.history.replaceState({}, '', `${location.pathname}?${params}`);
+      if (!getThingFromField(projectURI)) { // if we have a project then leave the URI alone
+        params.set('subject', uri);
+        window.history.replaceState({}, '', `${location.pathname}?${params}`);
+      }
 
       var subject = kb.sym(uri);
       // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up

@@ -3,10 +3,11 @@
 <head>
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <link type="text/css" rel="stylesheet" href="mash.css" />
-  <script type="text/javascript" src="mashlib.js"></script>
+  <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script>
   <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const panes = require('mashlib')
+    // const panes = require('mashlib')
+    const panes = window.panes
     const UI = panes.UI
     const $rdf = UI.rdf
     const dom = document

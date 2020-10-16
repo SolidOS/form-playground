@@ -1,0 +1,55 @@
+ SELECT ?v1 ?v2 ?v3 ?v4 ?v5 ?v6 ?v7 ?v8 ?v9 ?v10 ?v11 ?v12 ?v13 ?v14 ?v15 ?v16 ?v17 
+WHERE 
+{ 
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#fn> ?v1 .
+    }
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#role> ?v2 .
+    }
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#organization-name> ?v3 .
+    }
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#hasAddress> ?v4 .
+    }
+    OPTIONAL { 
+        ?v4 <http://www.w3.org/2006/vcard/ns#street-address> ?v5 .
+    }
+    OPTIONAL { 
+        ?v4 <http://www.w3.org/2006/vcard/ns#locality> ?v6 .
+    }
+    OPTIONAL { 
+        ?v4 <http://www.w3.org/2006/vcard/ns#postal-code> ?v7 .
+    }
+    OPTIONAL { 
+        ?v4 <http://www.w3.org/2006/vcard/ns#region> ?v8 .
+    }
+    OPTIONAL { 
+        ?v4 <http://www.w3.org/2006/vcard/ns#country-name> ?v9 .
+    }
+    OPTIONAL { 
+        ?v4 <http://purl.org/dc/terms/type> ?v10 .
+    }
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#hasEmail> ?v11 .
+    }
+    OPTIONAL { 
+        ?v11 <http://www.w3.org/2006/vcard/ns#value> ?v12 .
+    }
+    OPTIONAL { 
+        ?v11 <http://purl.org/dc/terms/type> ?v13 .
+    }
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#hasTelephone> ?v14 .
+    }
+    OPTIONAL { 
+        ?v14 <http://www.w3.org/2006/vcard/ns#value> ?v15 .
+    }
+    OPTIONAL { 
+        ?v14 <http://purl.org/dc/terms/type> ?v16 .
+    }
+    OPTIONAL { 
+        ?root <http://www.w3.org/2006/vcard/ns#note> ?v17 .
+    }
+}
