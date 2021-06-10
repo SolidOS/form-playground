@@ -1,0 +1,57 @@
+<#_g1> a ui:Form;
+  ui:part
+    [ a ui:SingleLineTextField; ui:property :flags ],
+    [ a ui:SingleLineTextField; ui:property :pattern ],
+    [ a ui:SingleLineTextField; ui:property
+#       ( :languageIn [ :zeroOrMorePath rdf:rest ] rdf:first ) ],
+        ( :languageIn <#_g0> rdf:first ) ],
+    [ a ui:Choice; ui:property :xone;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ],
+    [ a ui:Choice; ui:property :or;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ],
+    [ a ui:Choice;
+      ui:property :and;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ],
+    [ a ui:Choice; ui:property :qualifiedValueShape;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ] .
+
+<#_g2> a ui:Form;
+  ui:part
+    [ a ui:SingleLineTextField; ui:property :flags ],
+    [ a ui:SingleLineTextField; ui:property :pattern ],
+    [ a ui:SingleLineTextField; ui:property
+        ( :languageIn <#_g0> rdf:first ) ],
+    [ a ui:Choice; ui:property :xone;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ],
+    [ a ui:Choice; ui:property :or;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ],
+    [ a ui:Choice; ui:property :and;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ],
+    [ a ui:Choice; ui:property :qualifiedValueShape;
+      ui:canMintNew true;
+      ui:from owl:Thing;
+      ui:use [ a ui:Form ; # todo: generate form field
+      ] ] .
+
+<#_g0> :zeroOrMorePath rdf:rest . # todo: make this follow rdf Collection members.
