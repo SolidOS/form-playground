@@ -1,4 +1,10 @@
-C=python2.7 /Users/timbl/src/github.com/linkeddata/swap/cwm.py
+C=python2.7 ~/src/github.com/linkeddata/swap/cwm.py
+
+# Make shapes from forms
+
+profile-shapes-from-form.ttl : profileFormText.ttl profile-shape-seed.ttl ../tools/rules-form-to-shape.n3 
+	$C profileFormText.ttl profile-shape-seed.ttl --think=../tools/rules-form-to-shape.n3 > $@
+
 
 # Make forms from shapes
 

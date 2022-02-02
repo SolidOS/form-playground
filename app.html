@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html id="docHTML">
+<head>
+  <title>Solid Form-Based Web App</title>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <link type="text/css" rel="stylesheet" href="mash.css" />
+  <!-- <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script> -->
+  <script type="text/javascript" src="mashlib.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // const panes = require('mashlib')
+    const UI = panes.UI
+    const $rdf = UI.rdf
+    const dom = document
+    const ns = UI.ns
+    const style = UI.style
+
+    const loadOptions = { credentials: 'omit', withCredentials: false}
+
+    // $rdf.Fetcher.crossSiteProxyTemplate = self.origin + '/xss?uri={uri}';
+    var uri = window.location.href;
+    // window.document.title = 'Data browser: ' + uri;
+    var kb = UI.store;
+    var outliner = panes.getOutliner(dom)
+
+    function complainIfBad (ok, message) {
+      if (ok) return
+      box.appendChild(UI.widgets.errorMessageBlock(dom, '' + message))      // msg.textContent = message
+      console.log(message)
+    }
+
+/////////// User actions
+
+    function expandDataBowser ( event ) {
+      let uri = $rdf.uri.join(subjectEle.value, window.location.href)
+      console.log("User field " + subjectEle.value)
+      console.log("User requests " + uri)
+
+      const params = new URLSearchParams(location.search)
+      params.set('uri', uri);
+      window.history.replaceState({}, '', `${location.pathname}?${params}`);
+
+      var subject = kb.sym(uri);
+      // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
+      box.innerHTML = '<table id="outline"></table>'
+      outliner.GotoSubject(subject, true, undefined, true, undefined);
+    }
+
+    function queryFromForm(kb, form) {
+      var v = 1
+      var query = new $rdf.Query()
+      const root = new $rdf.Variable('?root')
+      function doForm(form, subject) {
+        var parts =  kb.any(form, ns.ui('parts'))
+        if (parts) {
+          parts = parts.elements
+        } else {
+          parts = kb.each(form, ns.ui('part'))
+        }
+        console.log(`queryFromForm: ${parts.length} parts`)
+        if (parts.length === 0) throw new Error('No parts')
+        for (var part of parts) {
+          let pred = kb.the(part, ns.ui('property'))
+          if (!pred) throw new Error('wot no property')
+          var object = new $rdf.Variable('v' + v++) // @@ make variable name cute from pred
+          query.pat.add(root, pred, object) // @@ todo: if form field optional, add top optional, not main query
+          if (kb.holds(part, ns.rdf('type'), ns.ui('Group'))
+            || kb.holds(part, ns.rdf('type'), ns.ui('Form'))) {
+              doForm(part, object)
+
+          }
+        }
+      }
+      doForm(form, root)
+      return query
+    }
+
+    async function applyForm ( event ) {
+      let uri = $rdf.uri.join(subjectEle.value, window.location.href)
+      let subject = $rdf.sym(uri)
+      console.log("Subject field " + subjectEle.value)
+      console.log("Loading subject: " + subject)
+      await adjustAndLoadAndCatch(subject, loadOptions)
+      console.log(`Loaded subject   ${subject} ✅`)
+
+      let formURI = $rdf.uri.join(formEle.value, window.location.href)
+      let form = $rdf.sym(formURI)
+      console.log("Form field " + formEle.value)
+      console.log("Loading form: " + form)
+      await adjustAndLoadAndCatch(form, loadOptions)
+      console.log(`Loaded form ${form} ✅`)
+
+      console.log('Check predicates in form...')
+      const predicates = kb.statementsMatching(null, UI.ns.ui('property')).map(st => st.object)
+      var ontologyURIs = {}
+      predicates.push(ns.ui('min')) // Pull in UI ontology as form system needs that to work
+      for (var pred of predicates) {
+        console.log('        predicate: ' + pred)
+        let nsuri = pred.doc().uri
+        ontologyURIs[nsuri] = true
+      }
+      for (let ontURI in ontologyURIs) {
+        let ontology = $rdf.sym(ontURI)
+        ontURI = ontURI.replace(/^http:/, 'https:') // hack for browser security -- sigh
+        if (ontURI.startsWith('https://purl.org/dc/terms/')) {
+          console.log('   Using W3C archive version of ' + ontURI)
+          ontURI = ontURI.replace(/^https:\/\//, 'https://www.w3.org/archive/')
+          // ontURI = 'https://www.w3.org/archive/purl.org/dc/terms/ontology.rdf'
+        }
+        kb.add(ontology, ns.rdf('type'), ns.owl('Ontology'), ontology)
+        addToTray(mainTray, ontology)
+        console.log('Loading ontology URI ' + ontURI)
+        // let options = { withCredentials: false} // sigh more browser security
+        await adjustAndLoadAndCatch(ontURI, loadOptions) // or could pass array ontologyURIs.keys
+      }
+      console.log(`Loaded ontologies ✅`)
+
+/*
+      const params = new URLSearchParams(location.search)
+      params.set('subject', subject.uri);
+      params.set('form', form.uri);
+      window.history.replaceState({}, '', `${location.pathname}?${params}`);
+*/
+
+      // Todo: user should log in
+      // Todo: Find user's existing log or make new one
+      // Set subject as user
+      // Set form the form for this all
+
+
+      UI.log.debug = console.log // @@ for testing
+
+      console.log('\nAppending form now:')
+      console.log(`  form ${form}\n  subject:  ${subject}`)
+      box.innerHTML = ''
+      UI.widgets.appendForm(dom, box, {}, subject, form, store, complainIfBad)
+
+      // UI.widgets.makeDraggable(icon, subject) // beware many handlers piling up
+      // outliner.GotoSubject(subject, true, undefined, true, undefined);
+    }
+
+
+    // Build The playground
+
+    const box = dom.getElementById('box')
+    const formEle = dom.getElementById('form')
+    formEle.style = UI.style.textInputStyle
+    formEle.style.width = '45em'
+
+    const subjectEle = dom.getElementById('subject')
+    subjectEle.style = UI.style.textInputStyle
+    subjectEle.style.width = '45em'
+
+    const goButton = dom.getElementById('goButton')
+    goButton.style = UI.textButtonStyle
+
+    const applyButton =  dom.getElementById('applyButton')
+    applyButton.style = style.signInButtonStyle // not normal style
+
+    const addToTrayButton =  dom.getElementById('addToTrayButton')
+    addToTrayButton.addEventListener('click', addSubjectToTray)
+
+
+    const makeNewOfThisTypeButton =  dom.getElementById('makeNewOfThisTypeButton')
+    makeNewOfThisTypeButton.style = style.signInButtonStyle // not normal style
+    makeNewOfThisTypeButton.addEventListener('click', makeInstanceOfClass)
+
+    const statusArea = dom.getElementById('statusArea')
+    const logInbox = dom.getElementById('logInbox')
+    
+    const context = { div: logInbox, dom: dom, buttonStyle: UI.style.buttonStyle}
+    UI.authn.logIn(context).then(context => {
+      me = context.me
+      alert(me)
+    })
+
+    const mainTray = traySpace.appendChild(renderTray())
+
+    const ontologyTray = traySpace.appendChild(renderTray())
+    for (const prefix in UI.ns) {
+      const namespace = UI.ns[prefix]
+      const ontology = namespace('').doc()
+      console.log('Ontology from namespace: ', ontology)
+      kb.add(ontology, ns.rdf('type'), ns.owl('Ontology'), ontology)
+      // addToTray(ontologyTray, ontology) // The namespace document
+    }
+
+    // Basic stuff:
+
+    goButton.addEventListener('click', expandDataBowser, false);
+    applyButton.addEventListener('click', applyForm, false);
+
+    let initialSubject = new URLSearchParams(self.location.search).get("subject")
+    if (initialSubject) {
+      subjectEle.value = initialSubject
+    }
+    let initialForm = new URLSearchParams(self.location.search).get("form")
+    if (initialForm) {
+      formEle.value = initialForm
+    } else {
+      // formEle.value = 'https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'
+    }
+
+    goButton.addEventListener('click', expandDataBowser, false);
+    let initial = new URLSearchParams(self.location.search).get("uri")
+    if (initial) {
+      subject.value = initial
+    } else {
+      console.log('ready for user input')
+      // subjectEle.value = 'https://www.w3.org/People/Berners-Lee/card#i' // @@ testing
+    }
+
+    async function main () {
+      // @@ normally these would be await calls
+      addToTray(mainTray, $rdf.sym('https://timbl.com/timbl/Public/Test/Forms/individualForm.ttl#form1'))
+      addToTray(mainTray, $rdf.sym('https://www.w3.org/People/Berners-Lee/card#i'))
+      // addToTray(mainTray, $rdf.sym('http://localhost:3080/example/nonExistent_404'))
+      addToTray(mainTray, $rdf.sym('http://www.w3.org/ns/ui#FormForm'))
+      addToTray(mainTray, $rdf.sym('http://www.w3.org/2000/01/rdf-schema#Class'))
+      addToTray(mainTray, ns.rdf('Property')) // The class of properties
+      addToTray(mainTray, ns.rdf('type')) // A property
+      addToTray(mainTray, ns.rdf('List')) // A class
+      addToTray(mainTray, ns.vcard('Individual')) // A property
+      addToTray(mainTray, ns.foaf('Person')) // A property
+      let wfhForm = $rdf.sym('https://timbl.com/timbl/Public/2020/Epidemic/Work%20From%20Home%20status%20and%20epidemic%20monitoring/Files/wfh-form.ttl#this')
+      addToTray(mainTray, wfhForm)
+      let onotologyBits = $rdf.sym('https://timbl.com/timbl/Public/2020/Epidemic/Work%20From%20Home%20status%20and%20epidemic%20monitoring/Files/ontos.ttl')
+      addToTray(mainTray, onotologyBits)
+    }
+
+    if (initialSubject && initialForm) {
+      console.log('All parms in URL search -> do immediately')
+      applyForm()
+    } else {
+      console.log('ready for user input')
+    }
+    main()
+  });
+  </script>
+</head>
+<body class="db-layout">
+  <!-- solid-panes' OutlineManager injects into this element -->
+  <header class="db-layout__header header" id="PageHeader"></header>
+  <h2>Covid19 Status</h2>
+
+  <div class="TabulatorOutline db-layout__content" id="DummyUUID" role="main">
+      <table id="outline"></table>
+      <div id="GlobalDashboard"></div>
+  </div>
+  <footer class="db-layout__footer" id="PageFooter"></footer>
+<script type="text/javascript" src="/mashlib.js"></script></body>
+
+</html>
