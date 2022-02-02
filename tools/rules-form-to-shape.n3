@@ -14,11 +14,15 @@
 
 # Propagate
 
-{ ?f ui:parts ?parts .
+{ ?s  xf:correspondingForm ?f .
+
+ ?f ui:parts ?parts .
   ?parts list:member ?part }
 =>
 { ?part a   :TESTPARTYEAHAAAAAAAAA .
-[] a sh:NodeShape; xf:correspondingForm ?part .
+[] a sh:NodeShape;
+    xf:correspondingForm ?part ;
+    is sh:SUBSHAPE of ?s  .
  } .
 
 
@@ -46,27 +50,31 @@
 
 # DateTime field
 
-{  ?f ui:part [ a ui:DateTimeField;
+{ ?s  xf:correspondingForm ?f.
+  ?f ui:part [ a ui:DateTimeField;
       ui:property ?property ]
 }
       =>
-{ ?s  xf:correspondingForm ?f;
-    sh:property ?arc .
-    ?arc sh:path ?property;
-          sh:datatype xsd:dateTime;
+{
+    ?s sh:property [
+        sh:path ?property;
+        sh:datatype xsd:dateTime;
+    ]
     }
      .
 
 # Fixed data field
 
-{  ?f ui:part [ a ui:Choice;
+{  ?s  xf:correspondingForm ?f .
+
+?f ui:part [ a ui:Choice;
      ui:default ?value;
      ui:fixed true;
      ui:property ?property ]
 }
       =>
 
- { ?s  xf:correspondingForm ?f;
+ { ?s
      sh:property ?arc .
      ?arc sh:path ?property;
            sh:value ?value;
@@ -75,15 +83,16 @@
 # Nested shape, nested form
 
 {
+   ?s  xf:correspondingForm ?f .
+
 ?f ui:part [ a ui:Choice;
-    ui:canMintNew true;
-    ui:from owl:Thing; # @@ target class -- pull from range of property? can leave out?
+    # ui:canMintNew true;
+    # ui:from owl:Thing; # @@ target class -- pull from range of property? can leave out?
     ui:use [ is xf:cat of ?shape2 ];
     ui:property ?property ]
 }
 
- =>{ ?s  xf:correspondingForm ?f;
-     sh:property ?arc .
+ =>{ ?s sh:property ?arc .
      ?arc sh:path ?property.
      ?shape2 sh:targetObjectsOf ?property.
  } .
