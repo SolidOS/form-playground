@@ -8,64 +8,186 @@
 
 @prefix xf: <http://www.w3.org/ns/pim/xform#>. # @@ think of where to put this
 
-#  { ?s a sh:NodeShape; sh:targetClass ?class }
-#      =>
-#  { ?s  xf:correspondingForm [ a ui:Form; is ui:creationForm of ?class ] } .
 
-# Propagate
+# Propagate Form
 
-{ ?s  xf:correspondingForm ?f .
-
+# Group to group (or Form)
+{ ?s  xf:nodeShapeForForm ?f .
+  # ?f     a ui:Form .
  ?f ui:parts ?parts .
-  ?parts list:member ?part }
+    ?parts list:member ?part.
+    ?part a ui:Group }
 =>
-{ ?part a   :TESTPARTYEAHAAAAAAAAA .
-[] a sh:NodeShape;
-    xf:correspondingForm ?part ;
-    is sh:SUBSHAPE of ?s  .
+{
+   ?s xf:nodeShapeForForm ?part;
  } .
+
+# Group to field:
+ { ?s  xf:nodeShapeForForm ?f .
+   # ?f     a ui:Form .
+  ?f ui:parts ?parts .
+  ?parts list:member ?part.
+  ?part  ui:property ?property }
+ =>
+ {
+ ?s sh:property [
+    a sh:PropertyShape;
+    sh:path ?property;
+    xf:propertyShapeForField ?part;
+    ]
+  } .
+
+
+# Propagate Groups
+#
+# { ?s  xf:nodeShapeForForm ?f .
+#  ?f     a ui:Group .
+#  ?f ui:parts ?parts .
+#     ?parts list:member ?part }
+# =>
+# {
+# ?part a   :TESTPARTYEAHBBBBB .
+# ?s   a sh:PropertyShape;
+#      xf:nodeShapeForForm ?part;
+#      sh:group ?f; # form groups can be Shacl groups too why not
+#  } .
 
 
 # Associated class
 
-{ ?f a ui:Form; is ui:creationForm of ?class }
+{ ?f a ui:Form; is ui:creationForm of ?class .
+  ?s xf:nodeShapeForForm ?f }
       =>
-{ ?s a sh:NodeShape; sh:targetClass ?class; xf:correspondingForm ?f } .
+{ ?s a sh:NodeShape; sh:targetClass ?class } .
 
 
 # Simple text field
-{  ?s  xf:correspondingForm ?f .
-
-   ?f a ui:SingleLineTextField ; # @@ Could be multi
+{  ?s  xf:propertyShapeForField ?f .
+   ?f a ui:SingleLineTextField ;
         ui:property ?property .
 }
    =>
-{
-   ?s sh:property [
+{ ?s
       sh:path ?property; # Note path can be more complex
       sh:datatype xsd:string;
-    ]
-   }.
+}.
+
+# Multiline text field
+{  ?s  xf:propertyShapeForField ?f .
+   ?f a ui:MultiLineTextField ;
+        ui:property ?property .
+}
+   =>
+{ ?s
+      sh:path ?property; # Note path can be more complex
+      sh:datatype xsd:string;
+}.
+
+# Color field
+{  ?s  xf:propertyShapeForField ?f .
+   ?f a ui:ColorField ; # @@ Could be multi
+        ui:property ?property .
+}
+   =>
+{ ?s sh:path ?property; # Note path can be more complex
+      sh:datatype xsd:color;
+      sh:pattern "^\\s*#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]([0-9a-f][0-9a-f])?\\s*$";
+}.
 
 
 # DateTime field
 
-{ ?s  xf:correspondingForm ?f.
+{ ?s  xf:propertyShapeForField ?f.
   ?f ui:part [ a ui:DateTimeField;
       ui:property ?property ]
 }
       =>
-{
-    ?s sh:property [
+{ ?s
         sh:path ?property;
         sh:datatype xsd:dateTime;
-    ]
-    }
-     .
+    }.
 
+############ Multiple
+#
+# :involvementWithOrganizationsForm a ui:Multiple;
+#    ui:label "Involvement with Organization";
+#    ui:property org:member; ui:reverse true; # link back from role to member
+#    ui:ordered false; # Allow user to order CV secions rather than force date order? No.
+#    ui:part :RoleMembershipForm.
+#
+
+{ ?s  xf:propertyShapeForField ?f .
+ ?f   a ui:Multiple ;
+      ui:ordered false;
+  #    ui:label ?label;
+      ui:property ?property;
+      ui:part ?part .
+}
+=>
+{
+?part a   :TESTMMMMMM .
+?s sh:property [
+     a sh:PropertyShape;
+  #   sh:name ?label;
+     sh:path ?property;
+          xf:propertyShapeForField ?part;
+     # sh:group ?f; # form groups can be Shacl groups too why not
+  ]
+ } .
+
+ { ?s  xf:propertyShapeForField ?f .
+  ?f   a ui:Multiple ;
+       ui:ordered true;
+       ui:property ?property;
+       ui:part ?part .
+ }
+ =>
+ {
+ ?part a   :TESTMMMMMM_Multiple_ordered .
+ ?s sh:property [ # Object must be a list
+      a sh:PropertyShape;
+      sh:targetClass rdf:Collection; # Collection of what though?
+      # sh:collectionMemberShape ?
+      sh:path ?property;
+      sh:node [a sh:NodeShape;
+        sh:property [ # See https://gitter.im/solid/chat?at=61fc4db03349fe1c71f3c022
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:node [ a sh:NodeShape; xf:nodeShapeForForm ?part ];
+        ]
+      ];
+   ]
+  } .
+
+######### Generic
+
+## Generic moving of label for those who have one
+
+{ ?s  xf:propertyShapeForField ?f .
+  ?f  ui:label ?label .
+}
+=>
+{ ?s sh:name ?label .
+ } .
+
+ ## Generic moving of min and ma for those who have one
+
+{ ?s  xf:propertyShapeForField ?f .
+  ?f  ui:minLength ?n .
+} =>
+{ ?s sh:minLength ?n .
+} .
+
+{ ?s  xf:propertyShapeForField ?f .
+  ?f  ui:maxLength ?n .
+} =>
+{ ?s sh:maxLength ?n .
+} .
+
+
+############################## UNUSED stuff from inverse xform file
 # Fixed data field
 
-{  ?s  xf:correspondingForm ?f .
+{  ?s  xf:propertyShapeForField ?f .
 
 ?f ui:part [ a ui:Choice;
      ui:default ?value;
@@ -83,7 +205,7 @@
 # Nested shape, nested form
 
 {
-   ?s  xf:correspondingForm ?f .
+   ?s  xf:propertyShapeForField ?f .
 
 ?f ui:part [ a ui:Choice;
     # ui:canMintNew true;

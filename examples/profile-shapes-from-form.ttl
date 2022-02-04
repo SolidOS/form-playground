@@ -1,6 +1,4 @@
-#Processed by Id
-        #    using base file:///Users/timbl_1/src/github.com/solid/form-playground/examples/
-             @prefix : <http://www.w3.org/ns/ui#> .
+     @prefix : <http://www.w3.org/ns/ui#> .
     @prefix dct: <http://purl.org/dc/terms/> .
     @prefix esco: <http://data.europa.eu/esco/model#> .
     @prefix foaf: <http://xmlns.com/foaf/0.1/> .
@@ -15,98 +13,112 @@
     @prefix solid: <http://www.w3.org/ns/solid/terms#> .
     @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
     @prefix wd: <http://www.wikidata.org/entity/> .
-    @prefix wdt: <http://www.wikidata.org/prop/direct/> .
     @prefix xf: <http://www.w3.org/ns/pim/xform#> .
     @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
     
-     @forAll forms:klass,
-                forms:name,
-                forms:subject,
-                forms:targetClass .
-    
-    shapes:ProfileShape     dct:title "Profile shape from form";
-         xf:correspondingForm forms:this;
-         sh:SUBSHAPE  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:SkillsForm ],
+    shapes:ProfileShape     a sh:NodeShape;
+         dct:title "Profile shape from form";
+         xf:nodeShapeForForm forms:CVGroup,
+                forms:pronounsForm,
+                forms:styleGroup,
+                forms:this;
+         sh:closed true;
+         sh:property  [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:highlightColor;
+             sh:datatype xsd:color;
+             sh:name "Highlight color";
+             sh:path solid:profileHighlightColor;
+             sh:pattern "^\\s*#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]([0-9a-f][0-9a-f])?\\s*$" ],
                  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:SkillsPrompt ],
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:backgroundColor;
+             sh:datatype xsd:color;
+             sh:name "Background color";
+             sh:path solid:profileBackgroundColor;
+             sh:pattern "^\\s*#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]([0-9a-f][0-9a-f])?\\s*$" ],
                  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:CVGroup;
-             sh:SUBSHAPE  [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:involvementWithOrganizationsForm ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:CVPrompt ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:CVHeading ] ],
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:relativePronounForm;
+             sh:datatype xsd:string;
+             sh:name "his/hers/theirs...";
+             sh:path solid:preferredRelativePronoun ],
                  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:LanguagesForm ],
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:objectPronounForm;
+             sh:datatype xsd:string;
+             sh:name "him/her/them...";
+             sh:path solid:preferredObjectPronoun ],
                  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:LanguagesPrompt ],
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:subjectPronounForm;
+             sh:datatype xsd:string;
+             sh:name "he/she/they...";
+             sh:path solid:preferredSubjectPronoun ],
                  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:pronounsForm;
-             sh:SUBSHAPE  [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:relativePronounForm;
-                 sh:property  [
-                     sh:datatype xsd:string;
-                     sh:path solid:preferredRelativePronoun ] ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:objectPronounForm;
-                 sh:property  [
-                     sh:datatype xsd:string;
-                     sh:path solid:preferredObjectPronoun ] ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:subjectPronounForm;
-                 sh:property  [
-                     sh:datatype xsd:string;
-                     sh:path solid:preferredSubjectPronoun ] ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:pronounsPrompt ] ],
-                 [
-             a sh:NodeShape;
-             xf:correspondingForm forms:nicknameField;
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:involvementWithOrganizationsForm;
+             sh:name "Involvement with Organization";
+             sh:path org:member;
              sh:property  [
-                 sh:datatype xsd:string;
-                 sh:path foaf:nick ] ],
+                 a sh:PropertyShape;
+                 xf:propertyShapeForField forms:RoleMembershipForm;
+                 sh:path org:member ] ],
                  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:styleGroup;
-             sh:SUBSHAPE  [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:highlightColor ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:backgroundColor ],
-                     [
-                 a sh:NodeShape;
-                 xf:correspondingForm forms:styleHeading ] ] .
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:SkillsForm;
+             sh:name "Skills";
+             sh:path schema:skills;
+             sh:property  [
+                 a sh:PropertyShape;
+                 xf:propertyShapeForField forms:SkillForm;
+                 sh:path schema:skills ] ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:LanguagesForm;
+             sh:name "Languages";
+             sh:path schema:knowsLanguage;
+             sh:property  [
+                 a sh:PropertyShape;
+                 sh:node  [
+                     a sh:NodeShape;
+                     sh:property  [
+                         sh:node  [
+                             a sh:NodeShape;
+                             xf:nodeShapeForForm forms:LanguageForm;
+                             sh:property  [
+                                 a sh:PropertyShape;
+                                 xf:propertyShapeForField forms:WikidataLanguageField;
+                                 sh:name "Language";
+                                 sh:path solid:publicId ] ];
+                         sh:path  (
+                         [
+                                 sh:zeroOrMorePath rdf:rest ]
+                        rdf:first ) ] ];
+                 sh:path schema:knowsLanguage;
+                 sh:targetClass rdf:Collection ] ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:nicknameField;
+             sh:datatype xsd:string;
+             sh:name "Short name for chats, etc."@en,
+                    "nom court"@fr;
+             sh:path foaf:nick ];
+         sh:targetClass schema:Person,
+                vcard:Individual,
+                foaf:Person .
     
-    forms:CVGroup     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Group;
+    forms:CVGroup     a :Group;
          :parts  (
         forms:CVHeading
         forms:CVPrompt
         forms:involvementWithOrganizationsForm );
          :weight 1 .
     
-    forms:CVHeading     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Heading;
+    forms:CVHeading     a :Heading;
          :contents "Public Curriculum Vitae" .
     
-    forms:CVPrompt     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Comment;
+    forms:CVPrompt     a :Comment;
          :contents "What organizations have you been involved with?" .
     
     forms:CorporationAutocomplete     a :AutocompleteField;
@@ -174,20 +186,19 @@
     forms:GovernmentOrganizationPrompt     a :Comment;
          :contents "Which GovernmentOrganization?" .
     
-    forms:LanguageForm     a :Group;
+    forms:LanguageForm     a <../tools/rules-form-to-shape.n3#TESTMMMMMM_Multiple_ordered>,
+                :Group;
          :parts  (
         forms:WikidataLanguageField );
          :weight 1 .
     
-    forms:LanguagesForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Multiple;
+    forms:LanguagesForm     a :Multiple;
          :label "Languages";
          :ordered true;
          :part forms:LanguageForm;
          :property schema:knowsLanguage .
     
-    forms:LanguagesPrompt     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Comment;
+    forms:LanguagesPrompt     a :Comment;
          :contents "Languages?" .
     
     forms:MembershipFormHeading     a :Heading;
@@ -210,13 +221,11 @@
     forms:NGOPrompt     a :Comment;
          :contents "Which NGO?" .
     
-    forms:OrgClassifier     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Classifier;
+    forms:OrgClassifier     a :Classifier;
          :category solid:InterestingOrganization;
          :label "What sort of organization?"@en .
     
-    forms:OrgSwitch     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Options;
+    forms:OrgSwitch     a :Options;
          :case  [
              :for schema:Corporation;
              :use forms:CorporationForm ],
@@ -254,8 +263,7 @@
         forms:OrganizationNameField
         forms:homePageURIField ) .
     
-    forms:OrganizationNameField     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :SingleLineTextField;
+    forms:OrganizationNameField     a :SingleLineTextField;
          :label "Organization Name";
          :maxLength "200";
          :property schema:name;
@@ -341,7 +349,8 @@
          :label "Describe your role";
          :property schema:description .
     
-    forms:RoleMembershipForm     a :Group;
+    forms:RoleMembershipForm     a <../tools/rules-form-to-shape.n3#TESTMMMMMM>,
+                :Group;
          :parts  (
         forms:MembershipFormHeading
         forms:roleNameField
@@ -352,20 +361,19 @@
         forms:RoleDescriptionForm );
          :weight 3 .
     
-    forms:SkillForm     a :Group;
+    forms:SkillForm     a <../tools/rules-form-to-shape.n3#TESTMMMMMM>,
+                :Group;
          :parts  (
         forms:escoSkillField );
          :weight 1 .
     
-    forms:SkillsForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Multiple;
+    forms:SkillsForm     a :Multiple;
          :label "Skills";
          :ordered false;
          :part forms:SkillForm;
          :property schema:skills .
     
-    forms:SkillsPrompt     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Comment;
+    forms:SkillsPrompt     a :Comment;
          :contents "Skills?" .
     
     forms:SportsOrganizationAutocomplete     a :AutocompleteField;
@@ -399,12 +407,7 @@
          schema:name "Wikidata instances by name";
          :endpoint "https://query.wikidata.org/sparql";
          :searchByName  [
-             :construct {forms:subject     schema:name forms:name .
-            };
-             :where {forms:klass     wdt:P279 forms:targetClass .
-            forms:subject     rdfs:label forms:name;
-                 wdt:P31 forms:klass .
-            } ];
+         ];
          :searchByNameQuery """SELECT ?subject ?name
         WHERE {
           ?klass wdt:P279* $(targetClass) .
@@ -477,8 +480,7 @@ WHERE
        } LIMIT $(limit) """;
          :targetClass wd:Q43229 .
     
-    forms:backgroundColor     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :ColorField;
+    forms:backgroundColor     a :ColorField;
          :default "#ffffff";
          :label "Background color";
          :property solid:profileBackgroundColor .
@@ -497,14 +499,12 @@ WHERE
          :size 30;
          :targetClass schema:Skill .
     
-    forms:highlightColor     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :ColorField;
+    forms:highlightColor     a :ColorField;
          :default "#000000";
          :label "Highlight color";
          :property solid:profileHighlightColor .
     
-    forms:homePageURIField     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :NamedNodeURIField;
+    forms:homePageURIField     a :NamedNodeURIField;
          :label "Home page URI"@en;
          :property schema:uri;
          :size 80 .
@@ -519,23 +519,20 @@ WHERE
          :property solid:publicId;
          :size 60 .
     
-    forms:involvementWithOrganizationsForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Multiple;
+    forms:involvementWithOrganizationsForm     a :Multiple;
          :label "Involvement with Organization";
          :ordered false;
          :part forms:RoleMembershipForm;
          :property org:member;
          :reverse true .
     
-    forms:nicknameField     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :SingleLineTextField;
+    forms:nicknameField     a :SingleLineTextField;
          :label "Short name for chats, etc."@en,
                 "nom court"@fr;
          :property foaf:nick;
          :size 12 .
     
-    forms:objectPronounForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :SingleLineTextField;
+    forms:objectPronounForm     a :SingleLineTextField;
          :label "him/her/them...";
          :property solid:preferredObjectPronoun;
          :size 10 .
@@ -548,8 +545,7 @@ WHERE
          :property org:organization;
          :use forms:OrganizationCreationForm .
     
-    forms:pronounsForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Group;
+    forms:pronounsForm     a :Group;
          :parts  (
         forms:pronounsPrompt
         forms:subjectPronounForm
@@ -557,12 +553,10 @@ WHERE
         forms:relativePronounForm );
          :weight 0 .
     
-    forms:pronounsPrompt     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Comment;
+    forms:pronounsPrompt     a :Comment;
          :contents "What are your pronouns?" .
     
-    forms:relativePronounForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :SingleLineTextField;
+    forms:relativePronounForm     a :SingleLineTextField;
          :label "his/hers/theirs...";
          :property solid:preferredRelativePronoun;
          :size 10 .
@@ -571,20 +565,17 @@ WHERE
          :property vcard:role;
          :size 60 .
     
-    forms:styleGroup     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Group;
+    forms:styleGroup     a :Group;
          :parts  (
         forms:styleHeading
         forms:backgroundColor
         forms:highlightColor );
          :weight 0 .
     
-    forms:styleHeading     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :Heading;
+    forms:styleHeading     a :Heading;
          :contents "The style of your public profile." .
     
-    forms:subjectPronounForm     a <../tools/rules-form-to-shape.n3#TESTPARTYEAHAAAAAAAAA>,
-                :SingleLineTextField;
+    forms:subjectPronounForm     a :SingleLineTextField;
          :label "he/she/they...";
          :property solid:preferredSubjectPronoun;
          :size 10 .
@@ -653,23 +644,4 @@ WHERE
         solid:CurrentRole
         solid:FormerRole
         solid:FutureRole ) .
-    
-    <../tools/rules-form-to-shape.n3#s>     a sh:NodeShape;
-         xf:correspondingForm forms:OrganizationCreationForm;
-         sh:SUBSHAPE  [
-             a sh:NodeShape;
-             xf:correspondingForm forms:homePageURIField ],
-                 [
-             a sh:NodeShape;
-             xf:correspondingForm forms:OrganizationNameField;
-             sh:property  [
-                 sh:datatype xsd:string;
-                 sh:path schema:name ] ],
-                 [
-             a sh:NodeShape;
-             xf:correspondingForm forms:OrgSwitch ],
-                 [
-             a sh:NodeShape;
-             xf:correspondingForm forms:OrgClassifier ];
-         sh:targetClass vcard:Organization .
     
