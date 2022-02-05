@@ -1,0 +1,301 @@
+     @prefix : <http://www.w3.org/ns/ui#> .
+    @prefix dct: <http://purl.org/dc/terms/> .
+    @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+    @prefix forms: <contactFormText.ttl#> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    @prefix pp: <http://paymentpointers.org/ns#> .
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix schema: <http://schema.org/> .
+    @prefix sh: <http://www.w3.org/ns/shacl#> .
+    @prefix shapes: <contact-shapes-from-form.ttl#> .
+    @prefix solid: <http://www.w3.org/ns/solid/terms#> .
+    @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+    @prefix xf: <http://www.w3.org/ns/pim/xform#> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+    shapes:contactShape     a sh:NodeShape;
+         dct:title "contact shape from form";
+         xf:nodeShapeForForm forms:form1;
+         sh:closed true;
+         sh:property  [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:noteField;
+             sh:datatype xsd:string;
+             sh:path vcard:note ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:birthdayField;
+             sh:name "Born";
+             sh:path vcard:bday ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:telephones;
+             sh:path vcard:hasTelephone ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:eMails;
+             sh:path vcard:hasEmail ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:addresses;
+             sh:path vcard:hasAddress ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:paymentPointerField;
+             sh:datatype xsd:string;
+             sh:maxLength "128";
+             sh:path pp:PaymentPointer ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:orgNameField;
+             sh:datatype xsd:string;
+             sh:maxLength "128";
+             sh:path vcard:organization-name ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:roleField;
+             sh:datatype xsd:string;
+             sh:maxLength "128";
+             sh:path vcard:role ],
+                 [
+             a sh:PropertyShape;
+             xf:propertyShapeForField forms:fullNameField;
+             sh:datatype xsd:string;
+             sh:maxLength "128";
+             sh:name "Name";
+             sh:path vcard:fn ];
+         sh:targetClass schema:Person,
+                vcard:Individual,
+                foaf:Person .
+    
+    forms:OrgClassifier     a :Classifier;
+         :category solid:InterestingOrganization;
+         :label "What sort of organization?"@en .
+    
+    forms:OrganizationCreationForm     a :Form;
+         schema:name "Form for editing a role";
+         :parts  (
+        forms:OrgClassifier
+        forms:homePageURIField ) .
+    
+    forms:addresses     a :Multiple;
+         dct:title "Address details";
+         :part forms:oneAddress;
+         :property vcard:hasAddress .
+    
+    forms:addressesComment     a :Comment;
+         :contents "Address";
+         :suppressIfUneditable true .
+    
+    forms:agentClassifier     a :Classifier,
+                :Form;
+         dct:title "Form for classifying people/organizations/robots";
+         :categopry foaf:Agent;
+         :label "What sort of entity?" .
+    
+    forms:birthdayField     a :DateField;
+         :label "Born";
+         :property vcard:bday;
+         :suppressEmptyUneditable true .
+    
+    forms:eMails     a :Multiple;
+         :part forms:oneEMail;
+         :property vcard:hasEmail .
+    
+    forms:emailComment     a :Comment;
+         :contents "Email";
+         :suppressIfUneditable true .
+    
+    forms:emailType     a :Classifier;
+         :canMintNew false;
+         :category vcard:Type;
+         :from vcard:Type;
+         :property rdf:type .
+    
+    forms:emailValue     a :EmailField;
+         :label "email";
+         :property vcard:value;
+         :size "50" .
+    
+    forms:form1     a :Form;
+         dct:title "Contact Details for a person";
+         :part forms:addresses,
+                forms:eMails,
+                forms:fullNameField,
+                forms:noteField,
+                forms:orgNameField,
+                forms:paymentPointerField,
+                forms:roleField,
+                forms:telephones;
+         :parts  (
+        forms:fullNameField
+        forms:roleField
+        forms:orgNameField
+        forms:paymentPointerField
+        forms:addresses
+        forms:eMails
+        forms:telephones
+        forms:birthdayField
+        forms:noteField ) .
+    
+    forms:fullNameField     a :SingleLineTextField;
+         :label "Name";
+         :maxLength "128";
+         :property vcard:fn;
+         :size "40" .
+    
+    forms:homePageURIField     a :NamedNodeURIField;
+         :property schema:url .
+    
+    forms:id1409437207443     a :SingleLineTextField;
+         :maxLength "128";
+         :property vcard:street-address;
+         :size "40" .
+    
+    forms:id1409437292400     a :SingleLineTextField;
+         :maxLength "128";
+         :property vcard:locality;
+         :size "40" .
+    
+    forms:id1409437421996     a :SingleLineTextField;
+         :maxLength "25";
+         :property vcard:postal-code;
+         :size "25" .
+    
+    forms:id1409437467649     a :SingleLineTextField;
+         :maxLength "128";
+         :property vcard:region;
+         :size "40" .
+    
+    forms:id1409437569420     a :SingleLineTextField;
+         :maxLength "128";
+         :property vcard:country-name;
+         :size "40" .
+    
+    forms:id1409437646712     a :Classifier;
+         :from rdf:Class;
+         :property rdf:type .
+    
+    forms:instituteNameField     a :SingleLineTextField;
+         :label "Institute Name";
+         :maxLength "200";
+         :property schema:name;
+         :size "80" .
+    
+    forms:instituteTypeField     a :Classifier;
+         :category solid:InterestingOrganization;
+         :label "What sort of organization" .
+    
+    forms:noteComment     a :Comment;
+         :contents "General Notes";
+         :suppressIfUneditable true .
+    
+    forms:noteField     a :MultiLineTextField;
+         :property vcard:note;
+         :suppressEmptyUneditable true .
+    
+    forms:oneAddress     a :Group;
+         :parts  (
+        forms:id1409437207443
+        forms:id1409437292400
+        forms:id1409437421996
+        forms:id1409437467649
+        forms:id1409437569420
+        forms:id1409437646712 ) .
+    
+    forms:oneEMail     a :Group;
+         :part forms:emailType,
+                forms:emailValue;
+         :parts  (
+        forms:emailType
+        forms:emailValue ) .
+    
+    forms:onetelephone     a :Group;
+         :part forms:telephoneType,
+                forms:telephoneValue;
+         :parts  (
+        forms:telephoneType
+        forms:telephoneValue ) .
+    
+    forms:orgDetailsForm     a :Form;
+         dct:title "Contact details for an organozation";
+         :parts  (
+        forms:OrgClassifier
+        forms:fullNameField
+        forms:addresses
+        forms:eMails
+        forms:telephones
+        forms:noteField ) .
+    
+    forms:orgNameField     a :SingleLineTextField;
+         :maxLength "128";
+         :property vcard:organization-name;
+         :size "40";
+         :suppressEmptyUneditable true .
+    
+    forms:paymentPointerField     a :SingleLineTextField;
+         :maxLength "128";
+         :property pp:PaymentPointer;
+         :size "40" .
+    
+    forms:roleField     a :SingleLineTextField;
+         :maxLength "128";
+         :property vcard:role;
+         :size "40";
+         :suppressEmptyUneditable true .
+    
+    forms:telephoneComment     a :Comment;
+         :contents "Phones";
+         :suppressIfUneditable true .
+    
+    forms:telephoneType     a :Classifier;
+         :canMintNew "0";
+         :category vcard:TelephoneType;
+         :from vcard:Type;
+         :property rdf:type .
+    
+    forms:telephoneValue     a :PhoneField;
+         :property vcard:value;
+         :size "50" .
+    
+    forms:telephones     a :Multiple;
+         :part forms:onetelephone;
+         :property vcard:hasTelephone .
+    
+    vcard:Cell     :label "mobile"@en .
+    
+    vcard:Individual     :creationForm forms:form1 .
+    
+    vcard:TelephoneType     owl:disjointUnionOf  (
+        vcard:Cell
+        vcard:Home
+        vcard:Work ) .
+    
+    vcard:Type     owl:disjointUnionOf  (
+        vcard:Home
+        vcard:Work ) .
+    
+    vcard:bday     :label "born"@en .
+    
+    vcard:hasAddress     :label "address"@en .
+    
+    vcard:hasEmail     :label "email"@en .
+    
+    vcard:hasTelephone     :label "phone"@en .
+    
+    vcard:note     :label "notes"@en .
+    
+    solid:InterestingOrganization     owl:disjointUnionOf  (
+        schema:Corporation
+        schema:EducationalOrganization
+        schema:GovernmentOrganization
+        schema:MedicalOrganization
+        schema:NGO
+        schema:MusicGroup
+        schema:Project
+        schema:SportsOrganization ) .
+    
+    foaf:Agent     owl:disjointUnionOf  (
+        vcard:Individual
+        vcard:Organization ) .
+    

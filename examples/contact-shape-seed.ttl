@@ -1,0 +1,25 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix schema: <http://schema.org/>.
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ui: <http://www.w3.org/ns/ui#>.
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#>.
+@prefix dct: <http://purl.org/dc/terms/>.
+
+@prefix xf: <http://www.w3.org/ns/pim/xform#>. # @@ think of where to put this
+
+@prefix shapes: <contact-shapes-from-form.ttl#>.
+@prefix forms: <contactFormText.ttl#>.
+
+shapes:contactShape xf:nodeShapeForForm  forms:form1 .
+# shapes:contactShape xf:correspondingField  forms:this .
+
+shapes:contactShape a sh:NodeShape;
+    dct:title "contact shape from form";
+    sh:closed true ;  # only for testing
+    sh:targetClass schema:Person , foaf:Person, vcard:Individual .
+
+# ends
