@@ -1,11 +1,16 @@
 # cwm is a tool from the SWAP project
 C=python2.7 ~/src/github.com/linkeddata/swap/cwm.py
+S=../../../solid/webid-profile/shapes
 
 # Make shapes from forms
+# (first is default)
 
 profile-shapes-from-form.ttl : profileFormText.ttl profile-shape-seed.ttl ../tools/rules-form-to-shape.n3
 	$C profileFormText.ttl profile-shape-seed.ttl --think=../tools/rules-form-to-shape.n3 --data --quiet > $@
+#	$C profileFormText.ttl profile-shape-seed.ttl --think=../tools/rules-form-to-shape.n3 --data --quiet > $@
 
+profileFormText.ttl : $S/profileFormText.ttl
+	cp $S/profileFormText.ttl $@
 
 # Make forms from shapes
 

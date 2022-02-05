@@ -67,7 +67,8 @@
 
   :involvementWithOrganizationsForm a ui:Multiple;
       ui:label "Involvement with Organization";
-      ui:property org:member; ui:reverse true; # link back from role to member
+      ui:property org:member;
+      ui:reverse true; # link back from role to member
       ui:ordered false; # Allow user to order CV secions rather than force date order? No.
       ui:part :RoleMembershipForm.
 
@@ -328,6 +329,7 @@ schema:ResearchOrganization a rdfs:Class; rdfs:label "Research Organization"@en,
       ui:label "Skills";
       ui:property schema:skills;
       ui:ordered false; # Allow reader to order skills
+      ui:reverse false;
       ui:part :SkillForm.
 
   :SkillForm a ui:Group; ui:weight 1; ui:parts ( :escoSkillField ).
@@ -354,6 +356,7 @@ schema:ResearchOrganization a rdfs:Class; rdfs:label "Research Organization"@en,
     ui:label "Languages";
     ui:property schema:knowsLanguage; # @@@
     ui:ordered true; # Allow user to order languages most important first.
+    ui:reverse false;
     ui:part :LanguageForm.
 
 :LanguageForm a ui:Group; ui:weight 1; ui:parts ( :WikidataLanguageField ).

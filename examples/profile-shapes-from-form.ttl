@@ -16,6 +16,8 @@
     @prefix xf: <http://www.w3.org/ns/pim/xform#> .
     @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
     
+     @forSome <#_g0> .
+    
     shapes:ProfileShape     a sh:NodeShape;
          dct:title "Profile shape from form";
          xf:nodeShapeForForm forms:CVGroup,
@@ -59,20 +61,46 @@
              a sh:PropertyShape;
              xf:propertyShapeForField forms:involvementWithOrganizationsForm;
              sh:name "Involvement with Organization";
-             sh:path org:member;
-             sh:property  [
-                 a sh:PropertyShape;
-                 xf:propertyShapeForField forms:RoleMembershipForm;
-                 sh:path org:member ] ],
+             sh:node  [
+                 a sh:NodeShape;
+                 xf:nodeShapeForForm forms:RoleMembershipForm;
+                 sh:property  [
+                     a sh:PropertyShape;
+                     xf:propertyShapeForField forms:RoleDescriptionForm;
+                     sh:datatype xsd:string;
+                     sh:name "Describe your role";
+                     sh:path schema:description ],
+                         [
+                     a sh:PropertyShape;
+                     xf:propertyShapeForField forms:orgField;
+                     sh:name "Organization"@en,
+                            "Organization"@fr;
+                     sh:path org:organization ],
+                         [
+                     a sh:PropertyShape;
+                     xf:propertyShapeForField forms:escoOccupationField;
+                     sh:name "occupation";
+                     sh:path org:role ],
+                         [
+                     a sh:PropertyShape;
+                     xf:propertyShapeForField forms:roleNameField;
+                     sh:datatype xsd:string;
+                     sh:path vcard:role ] ];
+             sh:path org:member,
+                    <#_g0> ],
                  [
              a sh:PropertyShape;
              xf:propertyShapeForField forms:SkillsForm;
              sh:name "Skills";
-             sh:path schema:skills;
-             sh:property  [
-                 a sh:PropertyShape;
-                 xf:propertyShapeForField forms:SkillForm;
-                 sh:path schema:skills ] ],
+             sh:node  [
+                 a sh:NodeShape;
+                 xf:nodeShapeForForm forms:SkillForm;
+                 sh:property  [
+                     a sh:PropertyShape;
+                     xf:propertyShapeForField forms:escoSkillField;
+                     sh:name "skill";
+                     sh:path solid:publicId ] ];
+             sh:path schema:skills ],
                  [
              a sh:PropertyShape;
              xf:propertyShapeForField forms:LanguagesForm;
@@ -186,17 +214,18 @@
     forms:GovernmentOrganizationPrompt     a :Comment;
          :contents "Which GovernmentOrganization?" .
     
-    forms:LanguageForm     a <../tools/rules-form-to-shape.n3#TESTMMMMMM_Multiple_ordered>,
-                :Group;
+    forms:LanguageForm     a :Group;
          :parts  (
         forms:WikidataLanguageField );
          :weight 1 .
     
     forms:LanguagesForm     a :Multiple;
+         sh:effectiveProperty schema:knowsLanguage;
          :label "Languages";
          :ordered true;
          :part forms:LanguageForm;
-         :property schema:knowsLanguage .
+         :property schema:knowsLanguage;
+         :reverse false .
     
     forms:LanguagesPrompt     a :Comment;
          :contents "Languages?" .
@@ -349,8 +378,7 @@
          :label "Describe your role";
          :property schema:description .
     
-    forms:RoleMembershipForm     a <../tools/rules-form-to-shape.n3#TESTMMMMMM>,
-                :Group;
+    forms:RoleMembershipForm     a :Group;
          :parts  (
         forms:MembershipFormHeading
         forms:roleNameField
@@ -361,17 +389,18 @@
         forms:RoleDescriptionForm );
          :weight 3 .
     
-    forms:SkillForm     a <../tools/rules-form-to-shape.n3#TESTMMMMMM>,
-                :Group;
+    forms:SkillForm     a :Group;
          :parts  (
         forms:escoSkillField );
          :weight 1 .
     
     forms:SkillsForm     a :Multiple;
+         sh:effectiveProperty schema:skills;
          :label "Skills";
          :ordered false;
          :part forms:SkillForm;
-         :property schema:skills .
+         :property schema:skills;
+         :reverse false .
     
     forms:SkillsPrompt     a :Comment;
          :contents "Skills?" .
@@ -520,6 +549,7 @@ WHERE
          :size 60 .
     
     forms:involvementWithOrganizationsForm     a :Multiple;
+         sh:effectiveProperty <#_g0>;
          :label "Involvement with Organization";
          :ordered false;
          :part forms:RoleMembershipForm;
@@ -644,4 +674,6 @@ WHERE
         solid:CurrentRole
         solid:FormerRole
         solid:FutureRole ) .
+    
+    <#_g0>     sh:inversePath org:member .
     

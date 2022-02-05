@@ -8,8 +8,9 @@
 
 @prefix xf: <http://www.w3.org/ns/pim/xform#>. # @@ think of where to put this
 
-
-# Propagate Form
+# Propagate Form or Group
+#
+# they are equivalent
 
 # Group to group (or Form)
 { ?s  xf:nodeShapeForForm ?f .
@@ -38,21 +39,6 @@
   } .
 
 
-# Propagate Groups
-#
-# { ?s  xf:nodeShapeForForm ?f .
-#  ?f     a ui:Group .
-#  ?f ui:parts ?parts .
-#     ?parts list:member ?part }
-# =>
-# {
-# ?part a   :TESTPARTYEAHBBBBB .
-# ?s   a sh:PropertyShape;
-#      xf:nodeShapeForForm ?part;
-#      sh:group ?f; # form groups can be Shacl groups too why not
-#  } .
-
-
 # Associated class
 
 { ?f a ui:Form; is ui:creationForm of ?class .
@@ -79,7 +65,7 @@
 }
    =>
 { ?s
-      sh:path ?property; # Note path can be more complex
+      sh:path ?property; #
       sh:datatype xsd:string;
 }.
 
@@ -89,7 +75,7 @@
         ui:property ?property .
 }
    =>
-{ ?s sh:path ?property; # Note path can be more complex
+{ ?s sh:path ?property;
       sh:datatype xsd:color;
       sh:pattern "^\\s*#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]([0-9a-f][0-9a-f])?\\s*$";
 }.
@@ -116,34 +102,34 @@
 #    ui:part :RoleMembershipForm.
 #
 
+{ ?f ui:reverse false; ui:property ?property } => { ?f sh:effectiveProperty ?property }.
+{ ?f ui:reverse true;  ui:property ?property } => { ?f sh:effectiveProperty [ sh:inversePath ?property ] }.
+
+# Multiple of field
 { ?s  xf:propertyShapeForField ?f .
  ?f   a ui:Multiple ;
       ui:ordered false;
-  #    ui:label ?label;
-      ui:property ?property;
+      sh:effectiveProperty ?property;
       ui:part ?part .
 }
 =>
-{
-?part a   :TESTMMMMMM .
-?s sh:property [
-     a sh:PropertyShape;
-  #   sh:name ?label;
-     sh:path ?property;
-          xf:propertyShapeForField ?part;
-     # sh:group ?f; # form groups can be Shacl groups too why not
-  ]
+{ ?s sh:path ?property;
+      sh:node [
+        a sh:NodeShape;
+        xf:nodeShapeForForm ?part;  # See next rule for groups
+      ].
  } .
 
+{ ?s xf:propertyShapeForField ?part . ?part a ui:Group } =>
+  { ?s sh:node [a sh:NodeShape; xf:nodeShapeForForm  ?part] } .
+
+## Multiple of Groups
  { ?s  xf:propertyShapeForField ?f .
   ?f   a ui:Multiple ;
        ui:ordered true;
        ui:property ?property;
        ui:part ?part .
- }
- =>
- {
- ?part a   :TESTMMMMMM_Multiple_ordered .
+ } => {
  ?s sh:property [ # Object must be a list
       a sh:PropertyShape;
       sh:targetClass rdf:Collection; # Collection of what though?
@@ -157,6 +143,8 @@
       ];
    ]
   } .
+
+
 
 ######### Generic
 
@@ -186,37 +174,36 @@
 
 ############################## UNUSED stuff from inverse xform file
 # Fixed data field
-
-{  ?s  xf:propertyShapeForField ?f .
-
-?f ui:part [ a ui:Choice;
-     ui:default ?value;
-     ui:fixed true;
-     ui:property ?property ]
-}
-      =>
-
- { ?s
-     sh:property ?arc .
-     ?arc sh:path ?property;
-           sh:value ?value;
-     } .
-
+#
+#{  ?s  xf:propertyShapeForField ?f .
+#
+#?f ui:part [ a ui:Choice;
+#     ui:default ?value;
+#     ui:fixed true;
+#     ui:property ?property ]
+#}
+#      =>
+#
+# { ?s
+#     sh:property ?arc .
+#     ?arc sh:path ?property;
+#           sh:value ?value;
+##
 # Nested shape, nested form
-
-{
-   ?s  xf:propertyShapeForField ?f .
-
-?f ui:part [ a ui:Choice;
-    # ui:canMintNew true;
-    # ui:from owl:Thing; # @@ target class -- pull from range of property? can leave out?
-    ui:use [ is xf:cat of ?shape2 ];
-    ui:property ?property ]
-}
-
- =>{ ?s sh:property ?arc .
-     ?arc sh:path ?property.
-     ?shape2 sh:targetObjectsOf ?property.
- } .
+#
+#{
+#   ?s  xf:propertyShapeForField ?f .
+#
+#?f ui:part [ a ui:Choice;
+#    # ui:canMintNew true;
+#    # ui:from owl:Thing; # @@ target class -- pull from range of property? can leave out?
+#    ui:use [ is xf:cat of ?shape2 ];
+#    ui:property ?property ]
+#}
+#
+# =>{ ?s sh:property ?arc .
+#     ?arc sh:path ?property.
+#     ?shape2 sh:targetObjectsOf ?property.
+# } .
 
 #ends
