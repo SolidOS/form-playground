@@ -5,8 +5,8 @@ S2=../../solid-panes/src/dashboard/preferencesFormText.ttl
 # Make shapes from forms
 # (first is default)
 
-both: contact-shapes-from-form.ttl  profile-shapes-from-form.ttl
-	cat $< > $@
+combined.ttl: contact-shapes-from-form.ttl  profile-shapes-from-form.ttl hand-profile-shape.ttl
+	$C contact-shapes-from-form.ttl  profile-shapes-from-form.ttl hand-profile-shape.ttl --purge --quiet > $@
 
 contact-shapes-from-form.ttl : contactFormText.ttl contact-shape-seed.ttl ../tools/rules-form-to-shape.n3
 	$C contactFormText.ttl contact-shape-seed.ttl --think=../tools/rules-form-to-shape.n3 --data --quiet > $@

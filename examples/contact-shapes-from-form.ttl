@@ -2,6 +2,7 @@
     @prefix dct: <http://purl.org/dc/terms/> .
     @prefix foaf: <http://xmlns.com/foaf/0.1/> .
     @prefix forms: <contactFormText.ttl#> .
+    @prefix log: <http://www.w3.org/2000/10/swap/log#> .
     @prefix owl: <http://www.w3.org/2002/07/owl#> .
     @prefix pp: <http://paymentpointers.org/ns#> .
     @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -68,56 +69,67 @@
                 vcard:Individual,
                 foaf:Person .
     
-    forms:OrgClassifier     a :Classifier;
+    forms:OrgClassifier     a log:Chaff,
+                :Classifier;
          :category solid:InterestingOrganization;
          :label "What sort of organization?"@en .
     
-    forms:OrganizationCreationForm     a :Form;
-         schema:name "Form for editing a role";
+    forms:OrganizationCreationForm     a log:Chaff,
+                :Form;
+         schema:name "Form for editing a Organization";
          :parts  (
         forms:OrgClassifier
         forms:homePageURIField ) .
     
-    forms:addresses     a :Multiple;
+    forms:addresses     a log:Chaff,
+                :Multiple;
          dct:title "Address details";
          :part forms:oneAddress;
          :property vcard:hasAddress .
     
-    forms:addressesComment     a :Comment;
+    forms:addressesComment     a log:Chaff,
+                :Comment;
          :contents "Address";
          :suppressIfUneditable true .
     
-    forms:agentClassifier     a :Classifier,
+    forms:agentClassifier     a log:Chaff,
+                :Classifier,
                 :Form;
          dct:title "Form for classifying people/organizations/robots";
          :categopry foaf:Agent;
          :label "What sort of entity?" .
     
-    forms:birthdayField     a :DateField;
+    forms:birthdayField     a log:Chaff,
+                :DateField;
          :label "Born";
          :property vcard:bday;
          :suppressEmptyUneditable true .
     
-    forms:eMails     a :Multiple;
+    forms:eMails     a log:Chaff,
+                :Multiple;
          :part forms:oneEMail;
          :property vcard:hasEmail .
     
-    forms:emailComment     a :Comment;
+    forms:emailComment     a log:Chaff,
+                :Comment;
          :contents "Email";
          :suppressIfUneditable true .
     
-    forms:emailType     a :Classifier;
+    forms:emailType     a log:Chaff,
+                :Classifier;
          :canMintNew false;
          :category vcard:Type;
          :from vcard:Type;
          :property rdf:type .
     
-    forms:emailValue     a :EmailField;
+    forms:emailValue     a log:Chaff,
+                :EmailField;
          :label "email";
          :property vcard:value;
          :size "50" .
     
-    forms:form1     a :Form;
+    forms:form1     a log:Chaff,
+                :Form;
          dct:title "Contact Details for a person";
          :part forms:addresses,
                 forms:eMails,
@@ -138,63 +150,76 @@
         forms:birthdayField
         forms:noteField ) .
     
-    forms:fullNameField     a :SingleLineTextField;
+    forms:fullNameField     a log:Chaff,
+                :SingleLineTextField;
          :label "Name";
          :maxLength "128";
          :property vcard:fn;
          :size "40" .
     
-    forms:homePageURIField     a :NamedNodeURIField;
+    forms:homePageURIField     a log:Chaff,
+                :NamedNodeURIField;
          :property schema:url .
     
-    forms:id1409437207443     a :SingleLineTextField;
+    forms:id1409437207443     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property vcard:street-address;
          :size "40" .
     
-    forms:id1409437292400     a :SingleLineTextField;
+    forms:id1409437292400     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property vcard:locality;
          :size "40" .
     
-    forms:id1409437421996     a :SingleLineTextField;
+    forms:id1409437421996     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "25";
          :property vcard:postal-code;
          :size "25" .
     
-    forms:id1409437467649     a :SingleLineTextField;
+    forms:id1409437467649     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property vcard:region;
          :size "40" .
     
-    forms:id1409437569420     a :SingleLineTextField;
+    forms:id1409437569420     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property vcard:country-name;
          :size "40" .
     
-    forms:id1409437646712     a :Classifier;
+    forms:id1409437646712     a log:Chaff,
+                :Classifier;
          :from rdf:Class;
          :property rdf:type .
     
-    forms:instituteNameField     a :SingleLineTextField;
+    forms:instituteNameField     a log:Chaff,
+                :SingleLineTextField;
          :label "Institute Name";
          :maxLength "200";
          :property schema:name;
          :size "80" .
     
-    forms:instituteTypeField     a :Classifier;
+    forms:instituteTypeField     a log:Chaff,
+                :Classifier;
          :category solid:InterestingOrganization;
          :label "What sort of organization" .
     
-    forms:noteComment     a :Comment;
+    forms:noteComment     a log:Chaff,
+                :Comment;
          :contents "General Notes";
          :suppressIfUneditable true .
     
-    forms:noteField     a :MultiLineTextField;
+    forms:noteField     a log:Chaff,
+                :MultiLineTextField;
          :property vcard:note;
          :suppressEmptyUneditable true .
     
-    forms:oneAddress     a :Group;
+    forms:oneAddress     a log:Chaff,
+                :Group;
          :parts  (
         forms:id1409437207443
         forms:id1409437292400
@@ -203,21 +228,24 @@
         forms:id1409437569420
         forms:id1409437646712 ) .
     
-    forms:oneEMail     a :Group;
+    forms:oneEMail     a log:Chaff,
+                :Group;
          :part forms:emailType,
                 forms:emailValue;
          :parts  (
         forms:emailType
         forms:emailValue ) .
     
-    forms:onetelephone     a :Group;
+    forms:onetelephone     a log:Chaff,
+                :Group;
          :part forms:telephoneType,
                 forms:telephoneValue;
          :parts  (
         forms:telephoneType
         forms:telephoneValue ) .
     
-    forms:orgDetailsForm     a :Form;
+    forms:orgDetailsForm     a log:Chaff,
+                :Form;
          dct:title "Contact details for an organozation";
          :parts  (
         forms:OrgClassifier
@@ -227,38 +255,45 @@
         forms:telephones
         forms:noteField ) .
     
-    forms:orgNameField     a :SingleLineTextField;
+    forms:orgNameField     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property vcard:organization-name;
          :size "40";
          :suppressEmptyUneditable true .
     
-    forms:paymentPointerField     a :SingleLineTextField;
+    forms:paymentPointerField     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property pp:PaymentPointer;
          :size "40" .
     
-    forms:roleField     a :SingleLineTextField;
+    forms:roleField     a log:Chaff,
+                :SingleLineTextField;
          :maxLength "128";
          :property vcard:role;
          :size "40";
          :suppressEmptyUneditable true .
     
-    forms:telephoneComment     a :Comment;
+    forms:telephoneComment     a log:Chaff,
+                :Comment;
          :contents "Phones";
          :suppressIfUneditable true .
     
-    forms:telephoneType     a :Classifier;
+    forms:telephoneType     a log:Chaff,
+                :Classifier;
          :canMintNew "0";
          :category vcard:TelephoneType;
          :from vcard:Type;
          :property rdf:type .
     
-    forms:telephoneValue     a :PhoneField;
+    forms:telephoneValue     a log:Chaff,
+                :PhoneField;
          :property vcard:value;
          :size "50" .
     
-    forms:telephones     a :Multiple;
+    forms:telephones     a log:Chaff,
+                :Multiple;
          :part forms:onetelephone;
          :property vcard:hasTelephone .
     
@@ -297,5 +332,6 @@
     
     foaf:Agent     owl:disjointUnionOf  (
         vcard:Individual
-        vcard:Organization ) .
+        solid:InterestingOrganization
+        schema:SoftwareApplication ) .
     

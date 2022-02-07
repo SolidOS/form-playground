@@ -16,123 +16,42 @@
 @prefix xf: <http://www.w3.org/ns/pim/xform#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+<> dct:title "Profile shape edited by hand".
+
 
 shapes:ProfileShape     a sh:NodeShape;
-    dct:title "Profile shape from form";
-    xf:nodeShapeForForm forms:CVGroup,
-           forms:pronounsForm,
-           forms:styleGroup,
-           forms:this;
-    sh:closed true;
+    sh:targetClass schema:Person, foaf:Person, vcard:Individual;
     sh:property  [
         a sh:PropertyShape;
-        xf:propertyShapeForField forms:highlightColor;
-        sh:datatype xsd:color;
-        sh:name "Highlight color";
-        sh:path solid:profileHighlightColor;
-        sh:pattern "^\\s*#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]([0-9a-f][0-9a-f])?\\s*$" ],
-            [
+        sh:name "Set type";
+        sh:path rdf:type;
+        sh:min 1;
+        sh:targetVale schema:Person;
+    ] , [
         a sh:PropertyShape;
-        xf:propertyShapeForField forms:backgroundColor;
-        sh:datatype xsd:color;
-        sh:name "Background color";
-        sh:path solid:profileBackgroundColor;
-        sh:pattern "^\\s*#[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]([0-9a-f][0-9a-f])?\\s*$" ],
-            [
+        sh:name "Set type";
+        sh:path rdf:type;
+        sh:targetVale foaf:Person;
+    ] , [
         a sh:PropertyShape;
-        xf:propertyShapeForField forms:relativePronounForm;
-        sh:datatype xsd:string;
-        sh:name "his/hers/theirs...";
-        sh:path solid:preferredRelativePronoun ],
-            [
+        sh:name "Set type";
+        sh:path rdf:type;
+        sh:targetValue vcard:Individual;
+    ] , [
         a sh:PropertyShape;
-        xf:propertyShapeForField forms:objectPronounForm;
-        sh:datatype xsd:string;
-        sh:name "him/her/them...";
-        sh:path solid:preferredObjectPronoun ],
-            [
-        a sh:PropertyShape;
-        xf:propertyShapeForField forms:subjectPronounForm;
-        sh:datatype xsd:string;
-        sh:name "he/she/they...";
-        sh:path solid:preferredSubjectPronoun ],
-            [
-        a sh:PropertyShape;
-        xf:propertyShapeForField forms:involvementWithOrganizationsForm;
-        sh:name "Involvement with Organization";
-        sh:node  [
-            a sh:NodeShape;
-            xf:nodeShapeForForm forms:RoleMembershipForm;
-            sh:property  [
-                a sh:PropertyShape;
-                xf:propertyShapeForField forms:RoleDescriptionForm;
-                sh:datatype xsd:string;
-                sh:name "Describe your role";
-                sh:path schema:description ],
-                    [
-                a sh:PropertyShape;
-                xf:propertyShapeForField forms:orgField;
-                sh:name "Organization"@en,
-                       "Organization"@fr;
-                sh:path org:organization ],
-                    [
-                a sh:PropertyShape;
-                xf:propertyShapeForField forms:escoOccupationField;
-                sh:name "occupation";
-                sh:path org:role ],
-                    [
-                a sh:PropertyShape;
-                xf:propertyShapeForField forms:roleNameField;
-                sh:datatype xsd:string;
-                sh:path vcard:role ] ];
-        sh:path <#_g0> ],
-            [
-        a sh:PropertyShape;
-        xf:propertyShapeForField forms:SkillsForm;
-        sh:name "Skills";
-        sh:node  [
-            a sh:NodeShape;
-            xf:nodeShapeForForm forms:SkillForm;
-            sh:property  [
-                a sh:PropertyShape;
-                xf:propertyShapeForField forms:escoSkillField;
-                sh:name "skill";
-                sh:path solid:publicId ] ];
-        sh:path schema:skills ],
-            [
-        a sh:PropertyShape;
-        xf:propertyShapeForField forms:LanguagesForm;
-        sh:name "Languages";
-        sh:path schema:knowsLanguage;
-        sh:property  [
-            a sh:PropertyShape;
-            sh:node  [
-                a sh:NodeShape;
-                sh:property  [
-                    sh:node  [
-                        a sh:NodeShape;
-                        xf:nodeShapeForForm forms:LanguageForm;
-                        sh:property  [
-                            a sh:PropertyShape;
-                            xf:propertyShapeForField forms:WikidataLanguageField;
-                            sh:name "Language";
-                            sh:path solid:publicId ] ];
-                    sh:path  (
-                    [
-                            sh:zeroOrMorePath rdf:rest ]
-                   rdf:first ) ] ];
-            sh:path schema:knowsLanguage;
-            sh:targetClass rdf:Collection ] ],
-            [
-        a sh:PropertyShape;
-        xf:propertyShapeForField forms:nicknameField;
-        sh:datatype xsd:string;
-        sh:name "Short name for chats, etc."@en,
-               "nom court"@fr;
-        sh:path foaf:nick ];
-    sh:targetClass schema:Person,
-           vcard:Individual,
-           foaf:Person .
+        sh:name "Friends";
+        sh:path foaf:knows;
+        sh:targetClass foaf:Person;
+    ] , [
 
-
-<#_g0>     sh:inversePath org:member .
+    ];
+# http://www.w3.org/ns/ldp#inbox
+# http://www.w3.org/ns/auth/acl#trustedApp
+# org:member
+# http://www.w3.org/ns/pim/space#preferencesFile
+# http://www.w3.org/ns/pim/space#storage
+# solid:account
+# solid:oidcIssuer ;
+# settings/privateTypeIndex.ttl   @@ Should be in prefs
+# solid:publicTypeIndex
+.

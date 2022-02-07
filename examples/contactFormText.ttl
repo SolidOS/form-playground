@@ -33,11 +33,15 @@ vcard:hasEmail ui:label "email"@en .
 vcard:hasTelephone ui:label "phone"@en .
 vcard:note ui:label "notes"@en .
 
+# Let's split foaf:Agent into three types we currently in the ecossystem
 
-foaf:Agent owl:disjointUnionOf ( vcard:Individual vcard:Organization ). # @@ add robot
+# Ontology data to drive the classifier: Person, Organization or robot?
+foaf:Agent owl:disjointUnionOf ( vcard:Individual solid:InterestingOrganization schema:SoftwareApplication).
+
+# Note a robot should declare who schema:owns it both in the bot profile and in the owner's profile
+# prov:SoftwareAgent is another term for bot
 
 # Ontology data to drive the classifier
-
 solid:InterestingOrganization owl:disjointUnionOf  (
 # Airline - a Corpration
 # Consortium - a Corporation or a NGO
@@ -56,9 +60,6 @@ solid:InterestingOrganization owl:disjointUnionOf  (
  ) .
 
 
-
-
-
 #  The forms themselves
 
 :agentClassifier a ui:Form;
@@ -66,7 +67,6 @@ solid:InterestingOrganization owl:disjointUnionOf  (
     ui:label "What sort of entity?";
     a ui:Classifier;
     ui:categopry foaf:Agent .
-
 
 vcard:Individual
     ui:creationForm :form1 .
@@ -281,19 +281,17 @@ vcard:Individual
 
 ############ organization forms
 
-:OrganizationCreationForm a ui:Form; schema:name "Form for editing a role" ;
+:OrganizationCreationForm a ui:Form; schema:name "Form for editing a Organization" ;
   ui:parts ( :OrgClassifier :homePageURIField  ) .
-
 
 :OrgClassifier a ui:Classifier; ui:label "What sort of organization?"@en;
   ui:category solid:InterestingOrganization .
-
 
 :instituteNameField
     a ui:SingleLineTextField ;
     ui:label "Institute Name";
     ui:maxLength "200" ;
-    ui:property schema:name ;
+    ui:property schema:name ; # @@ use vcard
     ui:size "80" .
 
  :homePageURIField a ui:NamedNodeURIField;
@@ -302,3 +300,9 @@ vcard:Individual
   :instituteTypeField a ui:Classifier;
   ui:label "What sort of organization";
   ui:category solid:InterestingOrganization .
+
+############ Robot forms
+
+# TBD @@
+
+# ends

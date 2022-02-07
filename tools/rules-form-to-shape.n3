@@ -1,5 +1,6 @@
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#>.
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
@@ -171,39 +172,12 @@
 { ?s sh:maxLength ?n .
 } .
 
+###########
+# Mark unused stuff
 
-############################## UNUSED stuff from inverse xform file
-# Fixed data field
-#
-#{  ?s  xf:propertyShapeForField ?f .
-#
-#?f ui:part [ a ui:Choice;
-#     ui:default ?value;
-#     ui:fixed true;
-#     ui:property ?property ]
-#}
-#      =>
-#
-# { ?s
-#     sh:property ?arc .
-#     ?arc sh:path ?property;
-#           sh:value ?value;
-##
-# Nested shape, nested form
-#
-#{
-#   ?s  xf:propertyShapeForField ?f .
-#
-#?f ui:part [ a ui:Choice;
-#    # ui:canMintNew true;
-#    # ui:from owl:Thing; # @@ target class -- pull from range of property? can leave out?
-#    ui:use [ is xf:cat of ?shape2 ];
-#    ui:property ?property ]
-#}
-#
-# =>{ ?s sh:property ?arc .
-#     ?arc sh:path ?property.
-#     ?shape2 sh:targetObjectsOf ?property.
-# } .
+{ ?f ui:property ?p } => { ?f a log:Chaff }.
+{ ?f ui:parts ?p } => { ?f a log:Chaff }.
+{ ?f ui:part ?p } => { ?f a log:Chaff }.
+{ ?f a [ list:in (ui:Heading ui:Comment ui:Classifier ui:DataSource ui:Options)] } => { ?f a log:Chaff }.
 
 #ends

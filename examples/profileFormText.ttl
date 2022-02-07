@@ -367,7 +367,7 @@ schema:ResearchOrganization a rdfs:Class; rdfs:label "Research Organization"@en,
           ui:dataSource :WikidataLanguageDataSource;
            ui:targetClass schema:Language .
 
-    :WikidataLanguageDataSource
+    :WikidataLanguageDataSource a ui:DataSource;
         schema:name "Wikidata languages";
         ui:endpoint "https://query.wikidata.org/sparql" ;
         ui:objectURIBase <https://www.w3.org/ns/iana/language-code/>;
