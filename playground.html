@@ -5,8 +5,8 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type">
   <link type="text/css" rel="stylesheet" href="mash.css" />
   <!-- <script type="text/javascript" src="/timbl/Automation/server/cascade/static/SolidTestEnvironment.js"></script> -->
-  <!-- <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script> -->
-  <script type="text/javascript" src="http://localhost:3080/devel/github.com/solid/mashlib-dev/workspaces/mashlib/dist/mashlib.js"></script>
+   <script type="text/javascript" src="https://solid.github.io/mashlib/dist/mashlib.js"></script>
+  <!-- <script type="text/javascript" src="http://localhost:3080/devel/github.com/solid/mashlib-dev/workspaces/mashlib/dist/mashlib.js"></script>  -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     // const panes = require('mashlib')
@@ -460,9 +460,12 @@
 
     const ontologyTray = traySpace.appendChild(renderTray())
     for (const prefix in UI.ns) {
+      console.log('Ontology from namespace: prefix: ', prefix)
+      if (prefix === 'default') continue
       const namespace = UI.ns[prefix]
+      if (!namespace) continue // eg 'defualt'
       const ontology = namespace('').doc()
-      console.log('Ontology from namespace: ', ontology)
+      console.log(' Ontology from namespace: ont: ', ontology)
       kb.add(ontology, ns.rdf('type'), ns.owl('Ontology'), ontology)
       // addToTray(ontologyTray, ontology) // The namespace document
     }
