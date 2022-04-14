@@ -1,5 +1,5 @@
 #Processed by Id
-        #    using base file:///Users/timbl/src/github.com/solid/form-playground/examples/
+        #    using base file:///Users/timbl/src/github.com/solidos/form-playground/examples/
              @prefix : <http://www.w3.org/ns/shacl#> .
     @prefix dct: <http://purl.org/dc/terms/> .
     @prefix forms: <shape-form-from-shapes.ttl#> .
