@@ -169,7 +169,7 @@
     const logInbox = dom.getElementById('logInbox')
     
     const context = { div: logInbox, dom: dom, buttonStyle: UI.style.buttonStyle}
-    UI.authn.logIn(context).then(context => {
+    UI.login.ensureLoggedIn(context).then(context => {
       me = context.me
       alert(me)
     })
